@@ -1,13 +1,80 @@
 {
   "schema_version": 1,
-  "generated_at": null,
-  "overall_status": "not-run",
+  "generated_at": "2026-11-04T19:50:06Z",
+  "overall_status": "ok",
   "totals": {
-    "total": 0,
-    "mtproto": 0,
-    "socks5": 0,
+    "total": 919,
+    "mtproto": 893,
+    "socks5": 26,
     "stale": 0,
-    "unsupported": 0
+    "unsupported": 2845
   },
-  "sources": []
+  "sources": [
+    {
+      "id": "radikal-stable",
+      "name": "0xRadikal · Stable",
+      "kind": "MTProto",
+      "url": "https://raw.githubusercontent.com/0xRadikal/Free-Telegram-Proxy/main/stable/proxies.json",
+      "status": "ok",
+      "fetched": 605,
+      "usable": 434,
+      "unsupported": 171,
+      "elapsed_ms": 229,
+      "error": null,
+      "checked_at": "2026-11-04T19:50:06Z"
+    },
+    {
+      "id": "radikal-verified",
+      "name": "0xRadikal · Verified",
+      "kind": "MTProto",
+      "url": "https://raw.githubusercontent.com/0xRadikal/Free-Telegram-Proxy/main/verified/proxies.json",
+      "status": "ok",
+      "fetched": 2639,
+      "usable": 891,
+      "unsupported": 1748,
+      "elapsed_ms": 160,
+      "error": null,
+      "checked_at": "2026-11-04T19:50:06Z"
+    },
+    {
+      "id": "tgmtproxy",
+      "name": "tgmtproxy",
+      "kind": "MTProto",
+      "url": "https://raw.githubusercontent.com/tgmtproxy/mtproxy/main/proxies.json",
+      "status": "ok",
+      "fetched": 900,
+      "usable": 0,
+      "unsupported": 900,
+      "elapsed_ms": 134,
+      "error": null,
+      "checked_at": "2026-11-04T19:50:06Z"
+    },
+    {
+      "id": "freedom-checker",
+      "name": "Freedom Checker",
+      "kind": "MTProto / SOCKS5",
+      "url": "https://freedomchecker.ateo.digital/api/snapshot.json",
+      "status": "ok",
+      "fetched": 28,
+      "usable": 2,
+      "unsupported": 26,
+      "elapsed_ms": 1139,
+      "error": null,
+      "checked_at": "2026-11-04T19:50:06Z"
+    },
+    {
+      "id": "monosans-socks5",
+      "name": "monosans · SOCKS5",
+      "kind": "SOCKS5",
+      "url": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt",
+      "status": "ok",
+      "fetched": 1585,
+      "usable": 26,
+      "unsupported": 0,
+      "elapsed_ms": 20053,
+      "error": null,
+      "tested": 100,
+      "checked_at": "2026-11-04T19:50:06Z"
+    }
+  ]
 }
