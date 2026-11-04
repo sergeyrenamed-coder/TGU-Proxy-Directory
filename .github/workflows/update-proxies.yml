@@ -64,13 +64,21 @@ jobs:
           fi
 
       - name: Configure GitHub Pages
+        id: pages
         uses: actions/configure-pages@v5
+        continue-on-error: true
+
+      - name: Explain Pages setup requirement
+        if: steps.pages.outcome != 'success'
+        run: echo "::warning::Proxy catalog was refreshed successfully. Enable Settings > Pages > Build and deployment > Source > GitHub Actions to publish the website."
 
       - name: Upload website
+        if: steps.pages.outcome == 'success'
         uses: actions/upload-pages-artifact@v4
         with:
           path: docs/
 
       - name: Deploy website
+        if: steps.pages.outcome == 'success'
         id: deployment
         uses: actions/deploy-pages@v4
