@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-04T19:50:06Z",
+  "generated_at": "2026-11-04T19:51:28Z",
   "overall_status": "ok",
   "totals": {
-    "total": 919,
+    "total": 927,
     "mtproto": 893,
-    "socks5": 26,
+    "socks5": 34,
     "stale": 0,
     "unsupported": 2845
   },
@@ -19,9 +19,9 @@
       "fetched": 605,
       "usable": 434,
       "unsupported": 171,
-      "elapsed_ms": 229,
+      "elapsed_ms": 472,
       "error": null,
-      "checked_at": "2026-11-04T19:50:06Z"
+      "checked_at": "2026-11-04T19:51:28Z"
     },
     {
       "id": "radikal-verified",
@@ -32,9 +32,9 @@
       "fetched": 2639,
       "usable": 891,
       "unsupported": 1748,
-      "elapsed_ms": 160,
+      "elapsed_ms": 348,
       "error": null,
-      "checked_at": "2026-11-04T19:50:06Z"
+      "checked_at": "2026-11-04T19:51:28Z"
     },
     {
       "id": "tgmtproxy",
@@ -45,9 +45,9 @@
       "fetched": 900,
       "usable": 0,
       "unsupported": 900,
-      "elapsed_ms": 134,
+      "elapsed_ms": 369,
       "error": null,
-      "checked_at": "2026-11-04T19:50:06Z"
+      "checked_at": "2026-11-04T19:51:28Z"
     },
     {
       "id": "freedom-checker",
@@ -58,9 +58,9 @@
       "fetched": 28,
       "usable": 2,
       "unsupported": 26,
-      "elapsed_ms": 1139,
+      "elapsed_ms": 1276,
       "error": null,
-      "checked_at": "2026-11-04T19:50:06Z"
+      "checked_at": "2026-11-04T19:51:28Z"
     },
     {
       "id": "monosans-socks5",
@@ -69,12 +69,12 @@
       "url": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt",
       "status": "ok",
       "fetched": 1585,
-      "usable": 26,
+      "usable": 34,
       "unsupported": 0,
-      "elapsed_ms": 20053,
+      "elapsed_ms": 20935,
       "error": null,
       "tested": 100,
-      "checked_at": "2026-11-04T19:50:06Z"
+      "checked_at": "2026-11-04T19:51:28Z"
     }
   ]
 }
