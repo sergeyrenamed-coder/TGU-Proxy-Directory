@@ -19,16 +19,21 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: tgu-proxy-catalog
   cancel-in-progress: true
 
 jobs:
-  collect:
+  collect-and-deploy:
     name: Collect, validate and publish
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -58,3 +63,15 @@ jobs:
             git commit -m "chore: refresh proxy catalog"
             git push
           fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs/
+
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4

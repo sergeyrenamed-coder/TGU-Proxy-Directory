@@ -28,14 +28,14 @@ The API uses records with `type`, `server`, `port`, and protocol-specific fields
 The static site is in `docs/`. To publish it once:
 
 1. Open **Settings → Pages** in this repository.
-2. Under **Build and deployment**, choose **Deploy from a branch**.
-3. Select branch **main** and folder **/docs**, then save.
+2. Under **Build and deployment**, choose **GitHub Actions** as the source.
+3. Save. The collector workflow deploys the current `docs/` folder after every successful collection run.
 
 The site will be available at:
 
 `https://sergeyrenamed-coder.github.io/TGU-Proxy-Directory/`
 
-The page reads the generated JSON files from `docs/data/`, which the collector updates alongside the canonical `data/` files.
+The page reads the generated JSON files from `docs/data/`. The same workflow uploads and deploys this folder after it refreshes the canonical `data/` files, so the site is updated even though the bot commit is made with GitHub's workflow token.
 
 ## Automatic updates
 
