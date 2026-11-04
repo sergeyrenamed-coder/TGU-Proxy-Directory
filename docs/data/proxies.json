@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "service": "TGU Proxy Directory",
+  "generated_at": null,
+  "generated_unix": null,
+  "counts": {
+    "total": 0,
+    "mtproto": 0,
+    "socks5": 0,
+    "stale": 0
+  },
+  "proxies": []
+}
