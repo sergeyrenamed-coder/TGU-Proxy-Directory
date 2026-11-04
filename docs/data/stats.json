@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "generated_at": null,
+  "overall_status": "not-run",
+  "totals": {
+    "total": 0,
+    "mtproto": 0,
+    "socks5": 0,
+    "stale": 0,
+    "unsupported": 0
+  },
+  "sources": []
+}

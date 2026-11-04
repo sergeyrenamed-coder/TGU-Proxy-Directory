@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d12">
+  <meta name="description" content="Live proxy catalog for TGU — aggregated and refreshed automatically.">
+  <title>TGU Proxy Directory</title>
+  <link rel="stylesheet" href="./assets/styles.css">
+  <script defer src="./assets/app.js"></script>
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-mark">T</span><span>TGU<span class="brand-muted"> / DIRECTORY</span></span></a>
+    <div class="top-actions">
+      <span class="live-indicator"><i></i> LIVE CATALOG</span>
+      <a class="github-link" href="https://github.com/sergeyrenamed-coder/TGU-Proxy-Directory" target="_blank" rel="noreferrer">GitHub ↗</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="eyebrow"><span class="eyebrow-line"></span> TELEGRAM CONNECTIVITY INDEX</div>
+      <h1>One catalog.<br><span>Many routes.</span></h1>
+      <p class="hero-copy">A consolidated pool of public Telegram proxy endpoints. Sources are collected, normalized, deduplicated and refreshed automatically.</p>
+      <div class="hero-meta">
+        <span class="status-pill" id="overall-status"><i></i> Connecting to catalog</span>
+        <span class="updated-label">LAST UPDATE <strong id="last-updated">—</strong></span>
+      </div>
+    </section>
+
+    <section class="stats-grid" aria-label="Catalog statistics">
+      <article class="stat-card stat-primary"><div class="stat-label">AVAILABLE ENDPOINTS</div><div class="stat-value" id="total-count">—</div><div class="stat-foot">TGU-compatible records</div><span class="stat-icon">↗</span></article>
+      <article class="stat-card"><div class="stat-label">MTProto</div><div class="stat-value" id="mtproto-count">—</div><div class="stat-foot">Classic + padded-intermediate</div><span class="stat-icon">◈</span></article>
+      <article class="stat-card"><div class="stat-label">SOCKS5</div><div class="stat-value" id="socks-count">—</div><div class="stat-foot">Tunnel-tested to Telegram DC</div><span class="stat-icon">⇄</span></article>
+      <article class="stat-card"><div class="stat-label">STALE RECORDS</div><div class="stat-value" id="stale-count">—</div><div class="stat-foot">Retained during source outages</div><span class="stat-icon">◷</span></article>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading"><div><div class="eyebrow">01 / NETWORK POOL</div><h2>Proxy endpoints</h2></div><a class="text-link" href="https://raw.githubusercontent.com/sergeyrenamed-coder/TGU-Proxy-Directory/main/data/proxies.json" target="_blank" rel="noreferrer">Open JSON API ↗</a></div>
+      <div class="toolbar">
+        <label class="search-box"><span>⌕</span><input id="search" type="search" placeholder="Search host, country or source…" autocomplete="off"></label>
+        <div class="filters" role="group" aria-label="Protocol filter">
+          <button class="filter active" data-filter="all">All</button>
+          <button class="filter" data-filter="MTProto">MTProto</button>
+          <button class="filter" data-filter="SOCKS5">SOCKS5</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ENDPOINT</th><th>PROTOCOL</th><th>REGION</th><th>LATENCY</th><th>UPTIME</th><th>STATUS</th><th></th></tr></thead>
+          <tbody id="proxy-rows"><tr><td colspan="7" class="empty">Loading proxy catalog…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-footer"><span id="visible-count">—</span><span>Public sources · no account credentials stored</span></div>
+    </section>
+
+    <section class="section-block sources-section">
+      <div class="section-heading"><div><div class="eyebrow">02 / INGESTION</div><h2>Source health</h2></div><span class="refresh-note">AUTO REFRESH · 15 MIN</span></div>
+      <div class="sources-grid" id="source-grid"><div class="source-card skeleton"></div><div class="source-card skeleton"></div><div class="source-card skeleton"></div></div>
+    </section>
+
+    <section class="api-strip">
+      <div><div class="eyebrow">FOR THE ANDROID CLIENT</div><h3>One endpoint for TGU</h3><p>Use this URL as the catalog source. TGU-compatible records only; FakeTLS entries are excluded until the app engine supports them.</p></div>
+      <button class="copy-api" id="copy-api">COPY API URL <span>↗</span></button>
+    </section>
+
+    <footer><span>© <span id="year"></span> TGU Proxy Directory</span><span>Independent public catalog · Not affiliated with Telegram</span><a href="https://github.com/sergeyrenamed-coder/TGU-Proxy-Directory">SOURCE CODE ↗</a></footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
