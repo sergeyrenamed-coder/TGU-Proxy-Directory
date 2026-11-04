@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-04T19:51:28Z",
+  "generated_at": "2026-11-04T20:09:26Z",
   "overall_status": "ok",
   "totals": {
-    "total": 927,
-    "mtproto": 893,
-    "socks5": 34,
+    "total": 916,
+    "mtproto": 892,
+    "socks5": 24,
     "stale": 0,
-    "unsupported": 2845
+    "unsupported": 2840
   },
   "sources": [
     {
@@ -17,11 +17,11 @@
       "url": "https://raw.githubusercontent.com/0xRadikal/Free-Telegram-Proxy/main/stable/proxies.json",
       "status": "ok",
       "fetched": 605,
-      "usable": 434,
-      "unsupported": 171,
-      "elapsed_ms": 472,
+      "usable": 435,
+      "unsupported": 170,
+      "elapsed_ms": 4329,
       "error": null,
-      "checked_at": "2026-11-04T19:51:28Z"
+      "checked_at": "2026-11-04T20:09:26Z"
     },
     {
       "id": "radikal-verified",
@@ -29,12 +29,12 @@
       "kind": "MTProto",
       "url": "https://raw.githubusercontent.com/0xRadikal/Free-Telegram-Proxy/main/verified/proxies.json",
       "status": "ok",
-      "fetched": 2639,
-      "usable": 891,
-      "unsupported": 1748,
-      "elapsed_ms": 348,
+      "fetched": 2634,
+      "usable": 890,
+      "unsupported": 1744,
+      "elapsed_ms": 15141,
       "error": null,
-      "checked_at": "2026-11-04T19:51:28Z"
+      "checked_at": "2026-11-04T20:09:26Z"
     },
     {
       "id": "tgmtproxy",
@@ -45,9 +45,9 @@
       "fetched": 900,
       "usable": 0,
       "unsupported": 900,
-      "elapsed_ms": 369,
+      "elapsed_ms": 169,
       "error": null,
-      "checked_at": "2026-11-04T19:51:28Z"
+      "checked_at": "2026-11-04T20:09:26Z"
     },
     {
       "id": "freedom-checker",
@@ -58,9 +58,9 @@
       "fetched": 28,
       "usable": 2,
       "unsupported": 26,
-      "elapsed_ms": 1276,
+      "elapsed_ms": 2607,
       "error": null,
-      "checked_at": "2026-11-04T19:51:28Z"
+      "checked_at": "2026-11-04T20:09:26Z"
     },
     {
       "id": "monosans-socks5",
@@ -69,12 +69,12 @@
       "url": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt",
       "status": "ok",
       "fetched": 1585,
-      "usable": 34,
+      "usable": 24,
       "unsupported": 0,
-      "elapsed_ms": 20935,
+      "elapsed_ms": 19904,
       "error": null,
       "tested": 100,
-      "checked_at": "2026-11-04T19:51:28Z"
+      "checked_at": "2026-11-04T20:09:26Z"
     }
   ]
 }
