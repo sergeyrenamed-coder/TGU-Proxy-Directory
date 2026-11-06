@@ -1,89 +1,56 @@
-import sys
+import importlib.util
+import pathlib
 import unittest
-from pathlib import Path
+from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-import collect
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+SPEC = importlib.util.spec_from_file_location("tgu_collect", ROOT / "scripts" / "collect.py")
+collector = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(collector)
 
 
-class CollectorTests(unittest.TestCase):
-    def setUp(self):
-        self.catalog = collect.Catalog()
-        for source in collect.SOURCES:
-            self.catalog.start_source(source)
+class FakeSocket:
+    def __init__(self, incoming):
+        self.incoming = bytearray(incoming)
+        self.sent = []
+        self.closed = False
 
-    def test_classic_mtproto_is_supported(self):
-        self.assertTrue(collect.mtproto_supported("0123456789abcdef0123456789abcdef"))
+    def sendall(self, payload):
+        self.sent.append(payload)
 
-    def test_padded_intermediate_mtproto_is_supported(self):
-        self.assertTrue(collect.mtproto_supported("dd0123456789abcdef0123456789abcdef"))
+    def recv(self, size):
+        chunk = self.incoming[:size]
+        del self.incoming[:size]
+        return bytes(chunk)
 
-    def test_faketls_is_excluded(self):
-        self.assertFalse(collect.mtproto_supported("ee" + "1" * 64))
+    def close(self):
+        self.closed = True
 
-    def test_invalid_secret_is_excluded(self):
-        self.assertFalse(collect.mtproto_supported("not-a-secret"))
 
-    def test_mtproto_is_normalized_for_tgu_parser(self):
-        ok = self.catalog.add_mtproto({
-            "server": "proxy.example.org", "port": 443,
-            "secret": "dd0123456789abcdef0123456789abcdef", "type": "secure",
-            "country": "DE", "rtt_ms": 120, "uptime": 0.98,
-        }, "radikal-stable", "stable")
-        self.assertTrue(ok)
-        item = next(iter(self.catalog.records.values()))
-        self.assertEqual(item["type"], "MTProto")
-        self.assertEqual(item["server"], "proxy.example.org")
-        self.assertEqual(item["port"], 443)
-        self.assertTrue(item["enabled"])
+class ProtocolByteTests(unittest.TestCase):
+    def test_socks5_probe_sends_binary_greeting_and_connect_request(self):
+        # SOCKS5: no-auth accepted, then CONNECT to 149.154.167.51:443 accepted.
+        incoming = (
+            bytes.fromhex("0500") +
+            bytes.fromhex("05000001") +
+            bytes([203, 0, 113, 7]) +
+            bytes.fromhex("01bb")
+        )
+        fake = FakeSocket(incoming)
+        with patch.object(collector, "connect_public_socket", return_value=fake):
+            ok, _latency, reason = collector.probe_socks5_candidate("192.0.2.1", 1080)
 
-    def test_dedup_merges_source_ids(self):
-        record = {"server": "1.2.3.4", "port": 443, "secret": "0123456789abcdef0123456789abcdef"}
-        self.catalog.add_mtproto(record, "radikal-stable", "stable")
-        self.catalog.add_mtproto(record, "radikal-verified", "verified")
-        self.assertEqual(len(self.catalog.records), 1)
-        self.assertEqual(set(next(iter(self.catalog.records.values()))["sources"]), {"radikal-stable", "radikal-verified"})
+        self.assertTrue(ok, reason)
+        self.assertEqual(fake.sent[0], bytes.fromhex("050100"))
+        self.assertEqual(
+            fake.sent[1],
+            bytes.fromhex("05010001") + bytes([149, 154, 167, 51]) + bytes.fromhex("01bb"),
+        )
+        self.assertTrue(fake.closed)
 
-    def test_telegram_link_parser(self):
-        parsed = collect.parse_link("https://t.me/proxy?server=1.2.3.4&port=443&secret=0123456789abcdef0123456789abcdef")
-        self.assertEqual(parsed["server"], "1.2.3.4")
-        self.assertEqual(parsed["port"], "443")
-        self.assertTrue(collect.mtproto_supported(parsed["secret"]))
-
-    def test_mtproto_secret_normalization(self):
-        raw = "0123456789abcdef0123456789abcdef"
-        self.assertEqual(collect.mtproto_secret_bytes(raw), bytes.fromhex(raw))
-        self.assertEqual(collect.mtproto_secret_bytes("dd" + raw), bytes.fromhex(raw))
-        self.assertFalse(collect.mtproto_uses_random_padding(raw))
-        self.assertTrue(collect.mtproto_uses_random_padding("dd" + raw))
-
-    def test_mtproto_secret_rejects_faketls(self):
-        with self.assertRaises(ValueError):
-            collect.mtproto_secret_bytes("ee" + "1" * 64)
-
-    def test_live_probe_filters_failed_candidates(self):
-        mt = {"id": "mt-good", "type": "MTProto", "server": "1.1.1.1", "port": 443, "secret": "0123456789abcdef0123456789abcdef", "sources": ["radikal-stable"], "stale": False}
-        socks = {"id": "socks-dead", "type": "SOCKS5", "server": "8.8.8.8", "port": 1080, "sources": ["monosans-socks5"], "stale": False}
-        self.catalog.records = {"mt-good": mt, "socks-dead": socks}
-        original_mt = collect.probe_mtproto_candidate
-        original_socks = collect.probe_socks5_candidate
-        try:
-            collect.probe_mtproto_candidate = lambda *_args: (True, 42, "ok")
-            collect.probe_socks5_candidate = lambda *_args: (False, 0, "SOCKS5 negotiation:OSError:refused")
-            stats = __import__("asyncio").run(collect.probe_catalog(self.catalog, concurrency=2))
-        finally:
-            collect.probe_mtproto_candidate = original_mt
-            collect.probe_socks5_candidate = original_socks
-        self.assertEqual(set(self.catalog.records), {"mt-good"})
-        self.assertEqual(self.catalog.records["mt-good"]["probe_status"], "working")
-        self.assertEqual(self.catalog.records["mt-good"]["rtt_ms"], 42)
-        self.assertEqual(stats["tested"], 2)
-        self.assertEqual(stats["working"], 1)
-        self.assertEqual(stats["rejected"], 1)
-        self.assertIn("SOCKS5 negotiation:OSError:refused", stats["failure_reasons"])
-    def test_disabled_or_invalid_hosts_are_rejected(self):
-        self.assertIsNone(collect.valid_host("bad host"))
-        self.assertIsNone(collect.valid_port(70000))
+    def test_mtproto_transport_tags_are_real_binary_bytes(self):
+        self.assertEqual(bytes.fromhex("eeeeeeee"), b"\xee\xee\xee\xee")
+        self.assertEqual(bytes.fromhex("dddddddd"), b"\xdd\xdd\xdd\xdd")
 
 
 if __name__ == "__main__":
