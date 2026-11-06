@@ -7,7 +7,8 @@ A public, automatically refreshed proxy catalog for the TGU Android application.
 - Aggregates public Telegram proxy catalogs and a public SOCKS5 feed.
 - Keeps only MTProto secrets currently supported by TGU (classic 16-byte secrets and the `dd` padded-intermediate form).
 - Excludes FakeTLS/WEB MTProto secrets beginning with `ee` from the TGU-compatible API because the current TGU transport does not support them yet.
-- Tests a bounded sample of public SOCKS5 endpoints by negotiating SOCKS5 and requesting a tunnel to a Telegram DC.
+- Actively probes every normalized endpoint before publication: classic MTProto uses the obfuscated2 handshake plus `req_pq_multi`/`resPQ`; SOCKS5 must negotiate and open a CONNECT tunnel to a Telegram DC.
+- Rejects failed probes and never republishes stale endpoints as working. Proxy health is time-sensitive; TGU repeats checks from the user's own network before selecting a server.
 - Deduplicates records, preserves the last known records for sources that temporarily fail, and publishes a single JSON catalog.
 - Refreshes every 15 minutes through GitHub Actions.
 
@@ -39,7 +40,7 @@ The page reads the generated JSON files from `docs/data/`. The same workflow upl
 
 ## Automatic updates
 
-GitHub Actions runs every 15 minutes, on pushes affecting the collector, and on manual dispatch. The schedule runs from GitHub infrastructure, not from the Android device. A source that is unavailable to the runner is reported as failed; the previous catalog entries from that source are retained and marked stale until the source is reachable again.
+GitHub Actions runs every 15 minutes, on pushes affecting the collector, and on manual dispatch. The schedule runs from GitHub infrastructure, not from the Android device. A source that is unavailable to the runner is reported as failed. Previously published endpoints from a failed source are not copied into the new working-only catalog.
 
 ## Sources currently configured
 

@@ -7,8 +7,11 @@ import asyncio
 import hashlib
 import ipaddress
 import json
+import os
 import re
+import secrets
 import socket
+import struct
 import sys
 import time
 from datetime import datetime, timezone
@@ -16,6 +19,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 from urllib.request import Request, urlopen
+
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
@@ -115,6 +120,19 @@ def mtproto_supported(secret: str) -> bool:
     if value.startswith("ee"):
         return False  # FakeTLS/WEB is intentionally excluded by the current TGU engine.
     return len(value) == 32 or (value.startswith("dd") and len(value) == 34)
+
+
+def mtproto_secret_bytes(value: str) -> bytes:
+    """Return the 16-byte classic MTProxy secret, stripping the dd transport marker."""
+    normalized = str(value or "").strip().lower()
+    if normalized.startswith("dd") and len(normalized) == 34:
+        normalized = normalized[2:]
+    if len(normalized) != 32 or not HEX_RE.fullmatch(normalized):
+        raise ValueError("Unsupported MTProto secret.")
+    secret = bytes.fromhex(normalized)
+    if len(secret) != 16:
+        raise ValueError("MTProto secret must be exactly 16 bytes.")
+    return secret
 
 
 def number_or_none(value: Any) -> float | None:
@@ -290,57 +308,234 @@ def collect_freedom(catalog: Catalog) -> None:
         catalog.source_fail(source_id, started, exc)
 
 
-def socks_reply_address(reader: asyncio.StreamReader, atyp: int) -> asyncio.Future:
-    async def read_address() -> None:
-        if atyp == 1:
-            await reader.readexactly(4)
-        elif atyp == 3:
-            size = (await reader.readexactly(1))[0]
-            await reader.readexactly(size)
-        elif atyp == 4:
-            await reader.readexactly(16)
-        else:
-            raise ValueError("Invalid SOCKS5 address type.")
-        await reader.readexactly(2)
-    return asyncio.create_task(read_address())
+def recv_exact(sock: socket.socket, size: int) -> bytes:
+    chunks = bytearray()
+    while len(chunks) < size:
+        part = sock.recv(size - len(chunks))
+        if not part:
+            raise OSError("Remote endpoint closed the connection.")
+        chunks.extend(part)
+    return bytes(chunks)
 
 
-async def test_socks5_candidate(host: str, port: int, timeout: float = 3.6) -> bool:
-    writer = None
-    try:
-        reader, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout=timeout)
-        writer.write(b"\x05\x01\x00")
-        await writer.drain()
-        greeting = await asyncio.wait_for(reader.readexactly(2), timeout=timeout)
-        if greeting != b"\x05\x00":
-            return False
-        target_ip = ipaddress.ip_address(TELEGRAM_DC[0]).packed
-        request = b"\x05\x01\x00\x01" + target_ip + TELEGRAM_DC[1].to_bytes(2, "big")
-        writer.write(request)
-        await writer.drain()
-        head = await asyncio.wait_for(reader.readexactly(4), timeout=timeout)
-        if head[0] != 5 or head[1] != 0:
-            return False
-        await asyncio.wait_for(socks_reply_address(reader, head[3]), timeout=timeout)
-        return True
-    except (OSError, asyncio.TimeoutError, asyncio.IncompleteReadError, ValueError):
-        return False
-    finally:
-        if writer is not None:
-            writer.close()
+def connect_public_socket(host: str, port: int, timeout: float) -> socket.socket:
+    """Resolve once and connect only to a globally routable address (no private-IP probing)."""
+    addresses = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    last_error: Exception | None = None
+    for family, socktype, proto, _canonname, sockaddr in addresses:
+        try:
+            address = ipaddress.ip_address(sockaddr[0])
+            if not address.is_global:
+                continue
+            connection = socket.socket(family, socktype, proto)
+            connection.settimeout(timeout)
             try:
-                await writer.wait_closed()
-            except OSError:
-                pass
+                connection.connect(sockaddr)
+                return connection
+            except Exception:
+                connection.close()
+                raise
+        except Exception as exc:
+            last_error = exc
+    if last_error:
+        raise OSError("No reachable public address for proxy host.") from last_error
+    raise OSError("Proxy host did not resolve to a public IP address.")
 
 
-async def test_socks_batch(candidates: list[tuple[str, int]], limit: int) -> list[tuple[str, int]]:
-    semaphore = asyncio.Semaphore(18)
-    async def run_one(candidate: tuple[str, int]) -> tuple[tuple[str, int], bool]:
+def probe_mtproto_candidate(host: str, port: int, secret_hex: str, timeout: float = 4.0) -> tuple[bool, int]:
+    """Verify classic MTProxy with obfuscated2 + unauthenticated req_pq_multi/resPQ."""
+    started = time.monotonic()
+    connection: socket.socket | None = None
+    try:
+        secret = mtproto_secret_bytes(secret_hex)
+        relay_init = bytearray(os.urandom(64))
+        reserved_starts = (
+            b"HEAD", b"POST", b"GET ", b"OPTI",
+            b"\\xee\\xee\\xee\\xee", b"\\xdd\\xdd\\xdd\\xdd",
+            b"\\x16\\x03\\x01\\x02",
+        )
+        for _ in range(256):
+            first_four = bytes(relay_init[:4])
+            if relay_init[0] != 0xEF and first_four not in reserved_starts and relay_init[4:8] != b"\\x00\\x00\\x00\\x00":
+                break
+            relay_init = bytearray(os.urandom(64))
+        else:
+            raise OSError("Could not generate an acceptable obfuscated handshake.")
+
+        prekey = bytes(relay_init[8:40])
+        encrypt_iv = bytes(relay_init[40:56])
+        encrypt_key = hashlib.sha256(prekey + secret).digest()
+
+        # Telegram's obfuscated2 handshake encrypts the random 64-byte prefix;
+        # bytes 56..63 are replaced with the encrypted padded-intermediate tag and DC index.
+        handshake_cipher = Cipher(algorithms.AES(encrypt_key), modes.CTR(encrypt_iv)).encryptor()
+        encrypted_random = handshake_cipher.update(bytes(relay_init)) + handshake_cipher.finalize()
+        keystream_tail = bytes(a ^ b for a, b in zip(encrypted_random[56:64], relay_init[56:64]))
+        tail_plain = struct.pack("<Ih", 0xDDDDDDDD, 2) + os.urandom(2)
+        relay_init[56:64] = bytes(a ^ b for a, b in zip(tail_plain, keystream_tail))
+
+        nonce = os.urandom(16)
+        message_id = (int(time.time()) << 32) & 0xFFFFFFFFFFFFFFFF
+        request = (
+            b"\\x00" * 8
+            + struct.pack("<Q", message_id)
+            + struct.pack("<I", 20)
+            + struct.pack("<I", 0xBE7E8EF1)
+            + nonce
+        )
+        padding = os.urandom(secrets.randbelow(16))
+        envelope = struct.pack("<I", len(request) + len(padding)) + request + padding
+
+        outbound = Cipher(algorithms.AES(encrypt_key), modes.CTR(encrypt_iv)).encryptor()
+        outbound.update(b"\\x00" * 64)  # advance past the obfuscated2 header
+        encrypted_envelope = outbound.update(envelope) + outbound.finalize()
+
+        reverse_material = bytes(relay_init[8:56])[::-1]
+        decrypt_key = hashlib.sha256(reverse_material[:32] + secret).digest()
+        decrypt_iv = reverse_material[32:48]
+        inbound = Cipher(algorithms.AES(decrypt_key), modes.CTR(decrypt_iv)).decryptor()
+
+        connection = connect_public_socket(host, port, timeout)
+        connection.sendall(bytes(relay_init) + encrypted_envelope)
+
+        encrypted_length = recv_exact(connection, 4)
+        plain_length = inbound.update(encrypted_length)
+        frame_length = struct.unpack("<i", plain_length)[0]
+        if not 40 <= frame_length <= 65_536:
+            raise OSError("Invalid MTProto padded-intermediate response length.")
+
+        encrypted_response = recv_exact(connection, frame_length)
+        response = inbound.update(encrypted_response)
+        if len(response) < 40 or response[:8] != b"\\x00" * 8:
+            raise OSError("MTProto endpoint returned an invalid authorization response.")
+        body_length = struct.unpack_from("<I", response, 16)[0]
+        constructor = struct.unpack_from("<I", response, 20)[0]
+        if body_length < 20 or body_length > len(response) - 20:
+            raise OSError("MTProto response body length is invalid.")
+        if constructor != 0x05162463 or response[24:40] != nonce:
+            raise OSError("MTProto endpoint did not return the expected Telegram resPQ response.")
+        elapsed_ms = max(1, int((time.monotonic() - started) * 1000))
+        return True, elapsed_ms
+    except Exception:
+        return False, max(0, int((time.monotonic() - started) * 1000))
+    finally:
+        if connection is not None:
+            connection.close()
+
+
+def probe_socks5_candidate(host: str, port: int, timeout: float = 3.6) -> tuple[bool, int]:
+    """Verify a no-auth SOCKS5 tunnel to a real Telegram DC, not a generic website."""
+    started = time.monotonic()
+    connection: socket.socket | None = None
+    try:
+        connection = connect_public_socket(host, port, timeout)
+        connection.sendall(b"\\x05\\x01\\x00")
+        if recv_exact(connection, 2) != b"\\x05\\x00":
+            raise OSError("SOCKS5 endpoint rejected no-auth negotiation.")
+
+        target_ip = ipaddress.ip_address(TELEGRAM_DC[0]).packed
+        connection.sendall(b"\\x05\\x01\\x00\\x01" + target_ip + TELEGRAM_DC[1].to_bytes(2, "big"))
+        reply = recv_exact(connection, 4)
+        if reply[0] != 5 or reply[1] != 0:
+            raise OSError("SOCKS5 CONNECT to Telegram DC failed.")
+        if reply[3] == 1:
+            recv_exact(connection, 4)
+        elif reply[3] == 3:
+            recv_exact(connection, recv_exact(connection, 1)[0])
+        elif reply[3] == 4:
+            recv_exact(connection, 16)
+        else:
+            raise OSError("SOCKS5 returned an invalid address type.")
+        recv_exact(connection, 2)
+        return True, max(1, int((time.monotonic() - started) * 1000))
+    except Exception:
+        return False, max(0, int((time.monotonic() - started) * 1000))
+    finally:
+        if connection is not None:
+            connection.close()
+
+
+async def probe_catalog(catalog: Catalog, concurrency: int = 32) -> dict[str, int]:
+    """Publish only endpoints that pass a live protocol-level Telegram connectivity probe."""
+    candidates = list(catalog.records.items())
+    semaphore = asyncio.Semaphore(max(1, concurrency))
+    started = time.monotonic()
+
+    for metric in catalog.metrics.values():
+        metric["usable"] = 0
+        metric["tested"] = 0
+        metric["working"] = 0
+        metric["failed_probes"] = 0
+
+    async def run_one(key: str, item: dict[str, Any]):
         async with semaphore:
-            return candidate, await test_socks5_candidate(*candidate)
-    results = await asyncio.gather(*(run_one(x) for x in candidates[:limit]))
-    return [candidate for candidate, ok in results if ok]
+            kind = item.get("type")
+            if kind == "MTProto":
+                ok, latency = await asyncio.to_thread(
+                    probe_mtproto_candidate,
+                    str(item["server"]), int(item["port"]), str(item["secret"]), 4.0,
+                )
+                probe_name = "mtproto-obfuscated2-req_pq_multi"
+            elif kind == "SOCKS5":
+                ok, latency = await asyncio.to_thread(
+                    probe_socks5_candidate, str(item["server"]), int(item["port"]), 3.6,
+                )
+                probe_name = "socks5-connect-telegram-dc"
+            else:
+                return key, item, False, 0, "unsupported"
+            return key, item, ok, latency, probe_name
+
+    results = await asyncio.gather(
+        *(run_one(key, item) for key, item in candidates),
+        return_exceptions=True,
+    )
+    now = utc_now()
+    working: dict[str, dict[str, Any]] = {}
+    mtproto_count = 0
+    socks_count = 0
+
+    for result in results:
+        if isinstance(result, Exception):
+            continue
+        key, item, ok, latency, probe_name = result
+        source_ids = item.get("sources") or []
+        for source_id in source_ids:
+            metric = catalog.metrics.get(source_id)
+            if metric is not None:
+                metric["tested"] += 1
+                if ok:
+                    metric["working"] += 1
+                    metric["usable"] += 1
+                else:
+                    metric["failed_probes"] += 1
+        if not ok:
+            continue
+
+        item["enabled"] = True
+        item["stale"] = False
+        item["probe_status"] = "working"
+        item["probe"] = probe_name
+        item["rtt_ms"] = latency
+        item["last_check"] = now
+        item["last_seen"] = now
+        item["checks"] = max(1, int(item.get("checks") or 0))
+        working[key] = item
+        if item.get("type") == "MTProto":
+            mtproto_count += 1
+        elif item.get("type") == "SOCKS5":
+            socks_count += 1
+
+    catalog.records = working
+    tested = len(candidates)
+    passed = len(working)
+    return {
+        "tested": tested,
+        "working": passed,
+        "rejected": tested - passed,
+        "mtproto_working": mtproto_count,
+        "socks5_working": socks_count,
+        "elapsed_ms": int((time.monotonic() - started) * 1000),
+    }
 
 
 def collect_monosans(catalog: Catalog, socks_limit: int) -> None:
@@ -368,14 +563,12 @@ def collect_monosans(catalog: Catalog, socks_limit: int) -> None:
             if valid and port and (valid, port) not in seen:
                 seen.add((valid, port))
                 candidates.append((valid, port))
+        selected = candidates[:socks_limit]
+        for host, port in selected:
+            catalog.add_socks5(host, port, source_id, probe="pending-active-probe")
         catalog.metrics[source_id]["fetched"] = len(candidates)
-        working = asyncio.run(test_socks_batch(candidates, socks_limit))
-        for host, port in working:
-            # add_socks5 increments fetched; restore the feed size below for meaningful source metrics.
-            catalog.add_socks5(host, port, source_id)
-        catalog.metrics[source_id]["fetched"] = len(candidates)
+        catalog.metrics[source_id]["limited"] = max(0, len(candidates) - len(selected))
         catalog.source_ok(source_id, started)
-        catalog.metrics[source_id]["tested"] = min(len(candidates), socks_limit)
     except Exception as exc:
         catalog.source_fail(source_id, started, exc)
 
@@ -407,20 +600,6 @@ def load_previous() -> list[dict[str, Any]]:
         return []
 
 
-def preserve_failed_sources(catalog: Catalog, previous: list[dict[str, Any]]) -> None:
-    if not catalog.failed:
-        return
-    for item in previous:
-        if not isinstance(item, dict):
-            continue
-        if not set(item.get("sources") or []).intersection(catalog.failed):
-            continue
-        copied = dict(item)
-        copied["stale"] = True
-        key = copied.get("id") or stable_id(copied.get("type"), copied.get("server"), copied.get("port"), copied.get("secret", ""))
-        catalog.records.setdefault(key, copied)
-
-
 def write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=False) + "\n", encoding="utf-8")
@@ -442,12 +621,11 @@ def run_collection(socks_limit: int = 100) -> dict[str, Any]:
         errors = "; ".join((m["name"] + ": " + str(m["error"])) for m in catalog.metrics.values())
         raise RuntimeError("Every proxy source failed; previous published data was left untouched. " + errors)
 
-    preserve_failed_sources(catalog, previous)
+    probe_stats = asyncio.run(probe_catalog(catalog))
     now = utc_now()
     proxies = list(catalog.records.values())
     proxies.sort(key=lambda p: (
         0 if p.get("type") == "MTProto" else 1,
-        bool(p.get("stale")),
         (p.get("rtt_ms") if p.get("rtt_ms") is not None else 999999),
         -(p.get("uptime") if p.get("uptime") is not None else 0),
         p.get("server", ""),
@@ -462,7 +640,11 @@ def run_collection(socks_limit: int = 100) -> dict[str, Any]:
     proxy_payload = {
         "schema_version": 1, "service": "TGU Proxy Directory",
         "generated_at": now, "generated_unix": int(time.time()),
-        "counts": {"total": len(proxies), "mtproto": mt_count, "socks5": socks_count, "stale": stale_count},
+        "counts": {
+            "total": len(proxies), "working": len(proxies), "mtproto": mt_count,
+            "socks5": socks_count, "stale": 0, "tested": probe_stats["tested"],
+            "rejected": probe_stats["rejected"],
+        },
         "proxies": proxies,
     }
     source_rows = list(catalog.metrics.values())
@@ -475,8 +657,11 @@ def run_collection(socks_limit: int = 100) -> dict[str, Any]:
         "overall_status": "partial" if catalog.failed else "ok",
         "totals": {
             "total": len(proxies), "mtproto": mt_count, "socks5": socks_count,
-            "stale": stale_count, "unsupported": catalog.unsupported,
+            "stale": 0, "unsupported": catalog.unsupported,
+            "tested": probe_stats["tested"], "working": probe_stats["working"],
+            "rejected": probe_stats["rejected"],
         },
+        "probe": probe_stats,
         "sources": source_rows,
     }
     source_payload = [{"id": s["id"], "name": s["name"], "kind": s["kind"], "url": s["url"]} for s in SOURCES]
@@ -490,7 +675,7 @@ def run_collection(socks_limit: int = 100) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Collect and publish the TGU-compatible proxy catalog.")
-    parser.add_argument("--socks-limit", type=int, default=100, help="Maximum monosans SOCKS5 candidates to test per run (default: 100).")
+    parser.add_argument("--socks-limit", type=int, default=1000, help="Maximum monosans SOCKS5 candidates to include in the live probe (default: 1000).")
     args = parser.parse_args()
     if not 0 <= args.socks_limit <= 1000:
         parser.error("--socks-limit must be between 0 and 1000")
@@ -503,6 +688,7 @@ def main() -> int:
         "generated_at": stats["generated_at"],
         "overall_status": stats["overall_status"],
         "totals": stats["totals"],
+        "probe": stats["probe"],
         "sources": [{
             "id": s["id"], "status": s["status"], "fetched": s["fetched"],
             "usable": s["usable"], "unsupported": s["unsupported"], "error": s["error"]

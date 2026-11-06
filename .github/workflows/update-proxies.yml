@@ -6,7 +6,7 @@ on:
       socks_limit:
         description: "Maximum monosans SOCKS5 candidates to test"
         required: false
-        default: "100"
+        default: "1000"
   schedule:
     - cron: "*/15 * * * *"
   push:
@@ -48,7 +48,7 @@ jobs:
 
       - name: Collect proxy sources
         env:
-          SOCKS_LIMIT: ${{ github.event.inputs.socks_limit || '100' }}
+          SOCKS_LIMIT: ${{ github.event.inputs.socks_limit || '1000' }}
         run: python scripts/collect.py --socks-limit "$SOCKS_LIMIT"
 
       - name: Commit updated catalog
