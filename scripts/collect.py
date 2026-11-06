@@ -359,14 +359,14 @@ def probe_mtproto_candidate(host: str, port: int, secret_hex: str, timeout: floa
         relay_init = bytearray(os.urandom(64))
         reserved_starts = {
             b"HEAD", b"POST", b"GET ", b"OPTI", b"PVrG",
-            b"\\xee\\xee\\xee\\xee", b"\\xdd\\xdd\\xdd\\xdd",
-            b"\\x16\\x03\\x01\\x02",
+            b"\xee\xee\xee\xee", b"\xdd\xdd\xdd\xdd",
+            b"\x16\x03\x01\x02",
         }
         for _ in range(256):
             if (
                 relay_init[0] != 0xEF
                 and bytes(relay_init[:4]) not in reserved_starts
-                and relay_init[4:8] != b"\\x00\\x00\\x00\\x00"
+                and relay_init[4:8] != b"\x00\x00\x00\x00"
             ):
                 break
             relay_init = bytearray(os.urandom(64))
@@ -375,7 +375,7 @@ def probe_mtproto_candidate(host: str, port: int, secret_hex: str, timeout: floa
 
         # TDLib chooses transport framing from the secret marker:
         # classic 16-byte secrets use intermediate (eeee); dd secrets use padded-intermediate.
-        transport_tag = b"\\xdd\\xdd\\xdd\\xdd" if padded else b"\\xee\\xee\\xee\\xee"
+        transport_tag = b"\xdd\xdd\xdd\xdd" if padded else b"\xee\xee\xee\xee"
         relay_init[56:60] = transport_tag
         relay_init[60:62] = struct.pack("<h", 2)
 
@@ -437,13 +437,13 @@ def probe_socks5_candidate(host: str, port: int, timeout: float = 3.6) -> tuple[
     try:
         connection = connect_public_socket(host, port, timeout)
         stage = "SOCKS5 negotiation"
-        connection.sendall(b"\\x05\\x01\\x00")
-        if recv_exact(connection, 2) != b"\\x05\\x00":
+        connection.sendall(b"\x05\x01\x00")
+        if recv_exact(connection, 2) != b"\x05\x00":
             raise OSError("SOCKS5 endpoint rejected no-auth negotiation.")
 
         stage = "SOCKS5 CONNECT to Telegram DC"
         target_ip = ipaddress.ip_address(TELEGRAM_DC[0]).packed
-        connection.sendall(b"\\x05\\x01\\x00\\x01" + target_ip + TELEGRAM_DC[1].to_bytes(2, "big"))
+        connection.sendall(b"\x05\x01\x00\x01" + target_ip + TELEGRAM_DC[1].to_bytes(2, "big"))
         reply = recv_exact(connection, 4)
         if reply[0] != 5 or reply[1] != 0:
             raise OSError("SOCKS5 CONNECT to Telegram DC failed.")
