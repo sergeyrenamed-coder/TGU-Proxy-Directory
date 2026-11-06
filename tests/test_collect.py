@@ -54,6 +54,8 @@ class CollectorTests(unittest.TestCase):
         raw = "0123456789abcdef0123456789abcdef"
         self.assertEqual(collect.mtproto_secret_bytes(raw), bytes.fromhex(raw))
         self.assertEqual(collect.mtproto_secret_bytes("dd" + raw), bytes.fromhex(raw))
+        self.assertFalse(collect.mtproto_uses_random_padding(raw))
+        self.assertTrue(collect.mtproto_uses_random_padding("dd" + raw))
 
     def test_mtproto_secret_rejects_faketls(self):
         with self.assertRaises(ValueError):
@@ -66,8 +68,8 @@ class CollectorTests(unittest.TestCase):
         original_mt = collect.probe_mtproto_candidate
         original_socks = collect.probe_socks5_candidate
         try:
-            collect.probe_mtproto_candidate = lambda *_args: (True, 42)
-            collect.probe_socks5_candidate = lambda *_args: (False, 0)
+            collect.probe_mtproto_candidate = lambda *_args: (True, 42, "ok")
+            collect.probe_socks5_candidate = lambda *_args: (False, 0, "SOCKS5 negotiation:OSError:refused")
             stats = __import__("asyncio").run(collect.probe_catalog(self.catalog, concurrency=2))
         finally:
             collect.probe_mtproto_candidate = original_mt
@@ -78,6 +80,7 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual(stats["tested"], 2)
         self.assertEqual(stats["working"], 1)
         self.assertEqual(stats["rejected"], 1)
+        self.assertIn("SOCKS5 negotiation:OSError:refused", stats["failure_reasons"])
     def test_disabled_or_invalid_hosts_are_rejected(self):
         self.assertIsNone(collect.valid_host("bad host"))
         self.assertIsNone(collect.valid_port(70000))
