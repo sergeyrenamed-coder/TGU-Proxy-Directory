@@ -50,6 +50,34 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual(parsed["port"], "443")
         self.assertTrue(collect.mtproto_supported(parsed["secret"]))
 
+    def test_mtproto_secret_normalization(self):
+        raw = "0123456789abcdef0123456789abcdef"
+        self.assertEqual(collect.mtproto_secret_bytes(raw), bytes.fromhex(raw))
+        self.assertEqual(collect.mtproto_secret_bytes("dd" + raw), bytes.fromhex(raw))
+
+    def test_mtproto_secret_rejects_faketls(self):
+        with self.assertRaises(ValueError):
+            collect.mtproto_secret_bytes("ee" + "1" * 64)
+
+    def test_live_probe_filters_failed_candidates(self):
+        mt = {"id": "mt-good", "type": "MTProto", "server": "1.1.1.1", "port": 443, "secret": "0123456789abcdef0123456789abcdef", "sources": ["radikal-stable"], "stale": False}
+        socks = {"id": "socks-dead", "type": "SOCKS5", "server": "8.8.8.8", "port": 1080, "sources": ["monosans-socks5"], "stale": False}
+        self.catalog.records = {"mt-good": mt, "socks-dead": socks}
+        original_mt = collect.probe_mtproto_candidate
+        original_socks = collect.probe_socks5_candidate
+        try:
+            collect.probe_mtproto_candidate = lambda *_args: (True, 42)
+            collect.probe_socks5_candidate = lambda *_args: (False, 0)
+            stats = __import__("asyncio").run(collect.probe_catalog(self.catalog, concurrency=2))
+        finally:
+            collect.probe_mtproto_candidate = original_mt
+            collect.probe_socks5_candidate = original_socks
+        self.assertEqual(set(self.catalog.records), {"mt-good"})
+        self.assertEqual(self.catalog.records["mt-good"]["probe_status"], "working")
+        self.assertEqual(self.catalog.records["mt-good"]["rtt_ms"], 42)
+        self.assertEqual(stats["tested"], 2)
+        self.assertEqual(stats["working"], 1)
+        self.assertEqual(stats["rejected"], 1)
     def test_disabled_or_invalid_hosts_are_rejected(self):
         self.assertIsNone(collect.valid_host("bad host"))
         self.assertIsNone(collect.valid_port(70000))
