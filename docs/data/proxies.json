@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
   "service": "TGU Proxy Directory",
-  "generated_at": "2026-11-06T09:28:26Z",
-  "generated_unix": 1793957306,
+  "generated_at": "2026-11-06T09:54:02Z",
+  "generated_unix": 1793958842,
   "counts": {
     "total": 0,
     "working": 0,
     "mtproto": 0,
     "socks5": 0,
     "stale": 0,
-    "tested": 1820,
-    "rejected": 1820
+    "tested": 1841,
+    "rejected": 1841
   },
   "proxies": []
 }
