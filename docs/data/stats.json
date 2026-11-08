@@ -1,30 +1,32 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-08T13:35:14Z",
+  "generated_at": "2026-11-08T13:42:52Z",
   "overall_status": "ok",
   "totals": {
-    "total": 845,
+    "total": 847,
     "mtproto": 831,
-    "socks5": 14,
+    "socks5": 16,
     "stale": 0,
     "unsupported": 2743,
     "tested": 921,
-    "working": 845,
-    "rejected": 76
+    "working": 847,
+    "rejected": 74
   },
   "probe": {
     "tested": 921,
-    "working": 845,
-    "rejected": 76,
+    "working": 847,
+    "rejected": 74,
     "mtproto_working": 831,
-    "socks5_working": 14,
+    "socks5_working": 16,
     "failure_reasons": {
-      "TCP connect:OSError:No reachable public address for proxy host.": 64,
-      "SOCKS5 CONNECT to Telegram DC:TimeoutError:timed out": 6,
-      "SOCKS5 negotiation:TimeoutError:timed out": 4,
-      "SOCKS5 CONNECT to Telegram DC:OSError:SOCKS5 CONNECT to Telegram DC failed.": 2
+      "TCP connect:OSError:No reachable public address for proxy host.": 52,
+      "SOCKS5 CONNECT to Telegram DC:TimeoutError:timed out": 11,
+      "SOCKS5 negotiation:TimeoutError:timed out": 8,
+      "SOCKS5 CONNECT to Telegram DC:ConnectionResetError:[Errno 104] Connection reset by peer": 1,
+      "SOCKS5 CONNECT to Telegram DC:OSError:SOCKS5 CONNECT to Telegram DC failed.": 1,
+      "SOCKS5 negotiation:ConnectionResetError:[Errno 104] Connection reset by peer": 1
     },
-    "elapsed_ms": 81585
+    "elapsed_ms": 80783
   },
   "sources": [
     {
@@ -36,12 +38,12 @@
       "fetched": 589,
       "usable": 442,
       "unsupported": 147,
-      "elapsed_ms": 273,
+      "elapsed_ms": 347,
       "error": null,
       "tested": 442,
       "working": 442,
       "failed_probes": 0,
-      "checked_at": "2026-11-08T13:35:14Z"
+      "checked_at": "2026-11-08T13:42:52Z"
     },
     {
       "id": "radikal-verified",
@@ -52,12 +54,12 @@
       "fetched": 2521,
       "usable": 831,
       "unsupported": 1690,
-      "elapsed_ms": 445,
+      "elapsed_ms": 385,
       "error": null,
       "tested": 831,
       "working": 831,
       "failed_probes": 0,
-      "checked_at": "2026-11-08T13:35:14Z"
+      "checked_at": "2026-11-08T13:42:52Z"
     },
     {
       "id": "tgmtproxy",
@@ -68,12 +70,12 @@
       "fetched": 900,
       "usable": 0,
       "unsupported": 900,
-      "elapsed_ms": 329,
+      "elapsed_ms": 136,
       "error": null,
       "tested": 0,
       "working": 0,
       "failed_probes": 0,
-      "checked_at": "2026-11-08T13:35:14Z"
+      "checked_at": "2026-11-08T13:42:52Z"
     },
     {
       "id": "freedom-checker",
@@ -84,12 +86,12 @@
       "fetched": 6,
       "usable": 0,
       "unsupported": 6,
-      "elapsed_ms": 1085,
+      "elapsed_ms": 925,
       "error": null,
       "tested": 0,
       "working": 0,
       "failed_probes": 0,
-      "checked_at": "2026-11-08T13:35:14Z"
+      "checked_at": "2026-11-08T13:42:52Z"
     },
     {
       "id": "monosans-socks5",
@@ -98,21 +100,23 @@
       "url": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt",
       "status": "ok",
       "fetched": 90,
-      "usable": 14,
+      "usable": 16,
       "unsupported": 0,
-      "elapsed_ms": 106,
+      "elapsed_ms": 32,
       "error": null,
       "limited": 0,
       "tested": 90,
-      "working": 14,
-      "failed_probes": 76,
+      "working": 16,
+      "failed_probes": 74,
       "failed_reasons": {
-        "TCP connect:OSError:No reachable public address for proxy host.": 64,
-        "SOCKS5 CONNECT to Telegram DC:TimeoutError:timed out": 6,
-        "SOCKS5 CONNECT to Telegram DC:OSError:SOCKS5 CONNECT to Telegram DC failed.": 2,
-        "SOCKS5 negotiation:TimeoutError:timed out": 4
+        "TCP connect:OSError:No reachable public address for proxy host.": 52,
+        "SOCKS5 CONNECT to Telegram DC:TimeoutError:timed out": 11,
+        "SOCKS5 CONNECT to Telegram DC:ConnectionResetError:[Errno 104] Connection reset by peer": 1,
+        "SOCKS5 negotiation:TimeoutError:timed out": 8,
+        "SOCKS5 CONNECT to Telegram DC:OSError:SOCKS5 CONNECT to Telegram DC failed.": 1,
+        "SOCKS5 negotiation:ConnectionResetError:[Errno 104] Connection reset by peer": 1
       },
-      "checked_at": "2026-11-08T13:35:14Z"
+      "checked_at": "2026-11-08T13:42:52Z"
     }
   ]
 }
