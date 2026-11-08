@@ -54,6 +54,25 @@ jobs:
           SOCKS_LIMIT: ${{ github.event.inputs.socks_limit || '1000' }}
         run: python scripts/collect.py --socks-limit "$SOCKS_LIMIT"
 
+      - name: Sync catalog to RNMDStore Netlify API
+        continue-on-error: true
+        env:
+          TGU_NETLIFY_CATALOG_SYNC_URL: ${{ secrets.TGU_NETLIFY_CATALOG_SYNC_URL }}
+          TGU_NETLIFY_SYNC_TOKEN: ${{ secrets.TGU_NETLIFY_SYNC_TOKEN }}
+        run: |
+          if [ -z "$TGU_NETLIFY_CATALOG_SYNC_URL" ] || [ -z "$TGU_NETLIFY_SYNC_TOKEN" ]; then
+            echo "::warning::Netlify catalog sync is not configured. GitHub catalog publication will continue normally."
+            exit 0
+          fi
+
+          curl --silent --show-error --fail-with-body \
+            --retry 3 --retry-all-errors --retry-delay 2 \
+            --request POST \
+            --header "Authorization: Bearer $TGU_NETLIFY_SYNC_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data-binary @data/proxies.json \
+            "$TGU_NETLIFY_CATALOG_SYNC_URL"
+
       - name: Commit updated catalog
         run: |
           git config user.name "github-actions[bot]"
