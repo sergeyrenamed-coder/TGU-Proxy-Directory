@@ -38,6 +38,19 @@ The site will be available at:
 
 The page reads the generated JSON files from `docs/data/`. The same workflow uploads and deploys this folder after it refreshes the canonical `data/` files, so the site is updated even though the bot commit is made with GitHub's workflow token.
 
+## RNMDSTORE / Netlify mirror
+
+The canonical GitHub catalog can also be mirrored to the RNMDSTORE Netlify API. TGU clients will eventually use this API for catalog delivery and community feedback; GitHub remains the source collector and fallback.
+
+After the RNMDSTORE Netlify Functions are deployed, configure these repository Actions secrets:
+
+- `TGU_NETLIFY_CATALOG_SYNC_URL` — the full URL ending in `/api/tgu/catalog/sync`.
+- `TGU_NETLIFY_SYNC_TOKEN` — the same long random token configured as `TGU_CATALOG_SYNC_TOKEN` in Netlify.
+
+The collection workflow sends the newly generated `data/proxies.json` to Netlify after a successful scan. The sync step is non-blocking: when Netlify is unavailable or secrets are not set, the GitHub catalog commit and Pages publication continue normally.
+
+See the RNMDSTORE repository's `docs/TGU_COMMUNITY_NETWORK_SETUP.md` for the complete setup and verification procedure.
+
 ## Automatic updates
 
 GitHub Actions runs every 15 minutes, on pushes affecting the collector, and on manual dispatch. The schedule runs from GitHub infrastructure, not from the Android device. A source that is unavailable to the runner is reported as failed. Previously published endpoints from a failed source are not copied into the new working-only catalog.
