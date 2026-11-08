@@ -65,14 +65,29 @@ jobs:
             exit 0
           fi
 
+          # Use the configured site's origin and bypass the nested /api rewrite.
+          # This makes the Function route explicit and avoids redirect query handling.
+          SYNC_ORIGIN="$(python - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+          configured = urlsplit(os.environ["TGU_NETLIFY_CATALOG_SYNC_URL"])
+          if configured.scheme != "https" or not configured.hostname:
+              raise SystemExit("TGU Netlify sync URL must be an HTTPS URL.")
+          if configured.username or configured.password:
+              raise SystemExit("Credentials must not be embedded in the sync URL.")
+          print(f"{configured.scheme}://{configured.netloc}")
+          PY
+          )"
+          SYNC_FUNCTION_URL="${SYNC_ORIGIN}/.netlify/functions/tgu-api?route=catalog-sync"
+          echo "Netlify sync host: ${SYNC_ORIGIN}; function route: /.netlify/functions/tgu-api?route=catalog-sync"
+
           curl --silent --show-error --fail-with-body \
             --retry 3 --retry-all-errors --retry-delay 2 \
             --request POST \
             --header "Authorization: Bearer $TGU_NETLIFY_SYNC_TOKEN" \
             --header "Content-Type: application/json" \
             --data-binary @data/proxies.json \
-            "$TGU_NETLIFY_CATALOG_SYNC_URL"
-
+            "$SYNC_FUNCTION_URL"
       - name: Commit updated catalog
         run: |
           git config user.name "github-actions[bot]"
