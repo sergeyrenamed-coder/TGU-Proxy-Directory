@@ -14,7 +14,7 @@ def catalog(count=821):
             "server": "1.1.1.1", "port": 443,
             "secret": "a" * 32, "probe_status": "working",
         })
-    items[400]["id"] = PINNED_ID
+    items[min(400, len(items) - 1)]["id"] = PINNED_ID
     return {"schema_version": 1, "generated_at": "2026-11-18T18:09:24Z", "proxies": items}
 
 

@@ -28,7 +28,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r requirements.txt
       - name: Verify bulk-test code offline
         run: |
-          python -m unittest tests/test_ru_bulk_400.py -v
+          python -m unittest discover -s tests -p 'test_ru_bulk_400.py' -v
           python -m compileall -q scripts/ru_bulk_400.py
       - name: Check 400 proxies in 13 bounded cloud calls
         env:
