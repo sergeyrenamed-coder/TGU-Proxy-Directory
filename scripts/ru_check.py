@@ -10,6 +10,9 @@ ID_RE = re.compile(r"^[a-f0-9]{20}$")
 MAX_BATCH = 32
 PRIORITY_MAX = 8
 PRIORITY_RECHECK_MINUTES = 45
+# A single manually verified RU-cloud proxy is sampled on the first cloud run.
+# It is only a candidate: the function must actually re-probe it to mark it working.
+BOOTSTRAP_PROXY_IDS = ("400e228c511c694acb13",)
 
 def utc_now():
     return datetime.now(timezone.utc)
@@ -57,6 +60,10 @@ def candidates(catalog):
         prepared.append(entry)
     return prepared
 
+def cursor_is_initial(health):
+    return int(health.get("cursor", 0)) == 0
+
+
 def prepare(catalog, health, count=MAX_BATCH, now=None):
     """Reserve up to 25% of each batch for previously RU-working proxies.
 
@@ -88,6 +95,9 @@ def prepare(catalog, health, count=MAX_BATCH, now=None):
     priority_limit = min(PRIORITY_MAX, count // 4, batch_size)
     # Fairness: the oldest successful RU verification is checked first.
     priority_ids = sorted(due, key=lambda pid: (due[pid], pid))[:priority_limit]
+    if cursor_is_initial(health) and not health.get("checks"):
+        known = [pid for pid in BOOTSTRAP_PROXY_IDS if pid in by_id]
+        priority_ids = list(dict.fromkeys(known + priority_ids))[:max(1, priority_limit)]
     selected = [by_id[pid] for pid in priority_ids]
     chosen = set(priority_ids)
     cursor = int(health.get("cursor", 0))

@@ -97,6 +97,17 @@ class RUCheckerTest(unittest.TestCase):
         self.assertEqual([item(i)["id"] for i in range(1, 7)], ids[2:])
         self.assertEqual(6, batch["rotation_advance"])
 
+    def test_manually_verified_bootstrap_gets_tested_first(self):
+        dt = datetime(2026, 11, 19, 3, 0, tzinfo=timezone.utc)
+        test_catalog = catalog(40)
+        test_catalog["proxies"][19]["id"] = "400e228c511c694acb13"
+        batch = prepare(test_catalog, {"cursor": 0, "checks": []}, 8, now=dt)
+        self.assertEqual("400e228c511c694acb13", batch["proxies"][0]["id"])
+        self.assertEqual(8, len(batch["proxies"]))
+        self.assertEqual(7, batch["rotation_advance"])
+        followup = prepare(test_catalog, {"cursor": 7, "checks": []}, 8, now=dt)
+        self.assertNotEqual("400e228c511c694acb13", followup["proxies"][0]["id"])
+
     def test_recent_success_not_rechecked_too_early(self):
         dt = datetime(2026, 11, 19, 3, 0, tzinfo=timezone.utc)
         recent = {"cursor": 0, "checks": [
