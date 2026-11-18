@@ -1,2 +1,2 @@
-TGU RU Checker one-time 400-proxy check requested by user.
-Only this test branch, no production publication. 2026-11-19.
+TGU RU Checker one-time 400-proxy test, retry 1: run package module.
+2026-11-19; no production publication.

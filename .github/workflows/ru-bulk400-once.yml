@@ -34,7 +34,7 @@ jobs:
         env:
           TGU_RU_FUNCTION_URL: ${{ secrets.TGU_RU_FUNCTION_URL }}
           TGU_RU_FUNCTION_API_KEY: ${{ secrets.TGU_RU_FUNCTION_API_KEY }}
-        run: python scripts/ru_bulk_400.py --count 400 --output ru-bulk-400-report.json
+        run: python -m scripts.ru_bulk_400 --count 400 --output ru-bulk-400-report.json
       - name: Upload results (including partial results on failure)
         if: always()
         uses: actions/upload-artifact@v4
