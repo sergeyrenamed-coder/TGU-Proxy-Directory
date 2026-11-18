@@ -29,8 +29,17 @@
     }
     return String(proxy.server) + ":" + String(proxy.port);
   }
+  function isRuFresh(health) {
+    const checked = Date.parse(health?.generated_at || "");
+    return health?.status === "active" && Number.isFinite(checked) &&
+      checked <= Date.now() && Date.now() - checked <= 24 * 60 * 60 * 1000;
+  }
   function ruMap() {
-    return new Map((state.ru?.checks || []).map(item => [item.proxy_id, item]));
+    if (!isRuFresh(state.ru)) return new Map();
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    return new Map((state.ru.checks || [])
+      .filter(item => Date.parse(item.checked_at) >= cutoff)
+      .map(item => [item.proxy_id, item]));
   }
   function renderProxies() {
     const ru = ruMap();
@@ -58,16 +67,18 @@
     }).join("");
   }
   function renderRU(health) {
-    const active = health?.status === "active";
+    const active = isRuFresh(health);
     const totals = health?.totals || {};
     $("ru-working-count").textContent = active ? number(totals.working) : "—";
     $("ru-checked").textContent = active ? number(totals.checked) : "—";
     $("ru-coverage").textContent = active ? Number(totals.coverage_percent || 0).toFixed(1) + "%" : "—";
     $("ru-updated").textContent = active ? date(health.generated_at) : "—";
-    $("ru-state").textContent = active ? "● RU CLOUD SCAN ACTIVE" : "○ RU CHECKER НЕ НАСТРОЕН";
+    $("ru-state").textContent = active ? "● RU CLOUD RESULTS AVAILABLE" :
+      health?.status === "active" ? "○ RU CHECKER: ДАННЫЕ УСТАРЕЛИ" : "○ RU CHECKER НЕ НАСТРОЕН";
     const byId = new Map(state.proxies.map(p => [p.id, p]));
     const matches = active ? (health.checks || [])
-      .filter(x => x.status === "working" && byId.has(x.proxy_id))
+      .filter(x => x.status === "working" && byId.has(x.proxy_id) &&
+        Date.parse(x.checked_at) >= Date.now() - 24 * 60 * 60 * 1000)
       .sort((a,b) => (a.latency_ms ?? 999999) - (b.latency_ms ?? 999999))
       .slice(0, 5) : [];
     $("ru-list").innerHTML = matches.length ? matches.map((item,i) => {
