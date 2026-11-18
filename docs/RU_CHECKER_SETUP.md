@@ -19,7 +19,8 @@
 5. В GitHub репозитории `TGU-Proxy-Directory` откройте **Settings → Secrets and variables → Actions** и добавьте секреты:
    - `TGU_RU_FUNCTION_URL`: адрес `https://functions.yandexcloud.net/ID_ФУНКЦИИ`
    - `TGU_RU_FUNCTION_API_KEY`: API-ключ сервисного аккаунта
-6. Запустите **Actions → Update TGU proxy catalog → Run workflow**. GitHub проверит 32 прокси через Яндекс. Результаты появятся в `data/ru-health.json` и на сайте после публикации Pages.
+6. Пока ветка тестовая, запустите **Actions → RU Checker cloud smoke test → Run workflow** и выберите ветку `test/ru-checker-yandex-mvp`. Проверяются только 8 прокси. Отчёт появится как артефакт `tgu-ru-cloud-smoke-result`; существующий каталог не обновляется, сайт не публикуется.
+7. После подтверждения результатов и слияния ветки в `main` обычный **Update TGU proxy catalog** будет проверять по 32 прокси за запуск, обновлять `data/ru-health.json` и публиковать данные на GitHub Pages.
 
 GitHub Actions не отправляет Telegram ID, телефон, переписку или результаты пользовательских устройств. Секреты не размещаются в APK, исходном коде и JSON каталога.
 
@@ -27,6 +28,7 @@ GitHub Actions не отправляет Telegram ID, телефон, переп
 
 - 32 прокси за запуск, 8 параллельных проверок, не более одного вызова Cloud Function на запуск коллектора.
 - Нет отдельного таймера в Яндексе и нет базы данных: состояние только в GitHub JSON.
+- Smoke-test запускается вручную, отчёт сохраняется только как Actions Artifact; не создаёт коммита.
 - В GitHub Actions шаг проверки помечен `continue-on-error`, чтобы ошибки RU Checker не ломали базовый каталог.
 - Данные RU Checker **не изменяют число глобально рабочих прокси** и не используются для выбора прокси в Android до отдельного клиентского обновления.
 - Нужна проверка реальных вызовов и стоимости в собственном Yandex Cloud. Без этого статус будет `not_configured`.

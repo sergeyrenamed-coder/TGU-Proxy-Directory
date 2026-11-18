@@ -1,0 +1,45 @@
+name: RU Checker cloud smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-ru-egress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate Yandex configuration
+        env:
+          TGU_RU_FUNCTION_URL: ${{ secrets.TGU_RU_FUNCTION_URL }}
+          TGU_RU_FUNCTION_API_KEY: ${{ secrets.TGU_RU_FUNCTION_API_KEY }}
+        run: |
+          if [ -z "$TGU_RU_FUNCTION_URL" ] || [ -z "$TGU_RU_FUNCTION_API_KEY" ]; then
+            echo "::error::Set both TGU_RU_FUNCTION_URL and TGU_RU_FUNCTION_API_KEY in repository Actions Secrets."
+            exit 1
+          fi
+          case "$TGU_RU_FUNCTION_URL" in
+            https://functions.yandexcloud.net/*) ;;
+            *) echo "::error::Unexpected Yandex function URL"; exit 1 ;;
+          esac
+      - name: Probe eight public catalog candidates from Yandex Cloud
+        env:
+          TGU_RU_FUNCTION_URL: ${{ secrets.TGU_RU_FUNCTION_URL }}
+          TGU_RU_FUNCTION_API_KEY: ${{ secrets.TGU_RU_FUNCTION_API_KEY }}
+        run: |
+          python scripts/ru_check.py prepare --size 8 --request "$RUNNER_TEMP/tgu-ru-smoke-request.json"
+          curl --silent --show-error --fail-with-body --max-time 90 --connect-timeout 10 --request POST --header "Authorization: Api-Key $TGU_RU_FUNCTION_API_KEY" --header "Content-Type: application/json" --data-binary @"$RUNNER_TEMP/tgu-ru-smoke-request.json" --output "$RUNNER_TEMP/tgu-ru-smoke-response.json" "$TGU_RU_FUNCTION_URL"
+          python scripts/ru_check.py merge --request "$RUNNER_TEMP/tgu-ru-smoke-request.json" --response "$RUNNER_TEMP/tgu-ru-smoke-response.json"
+          python -c "import json; h=json.load(open('data/ru-health.json')); print('RU status:',h['status'],'checked:',h['totals']['checked'],'working:',h['totals']['working'])"
+      - name: Upload RU test report without publishing it
+        uses: actions/upload-artifact@v4
+        with:
+          name: tgu-ru-cloud-smoke-result
+          path: data/ru-health.json
+          retention-days: 14

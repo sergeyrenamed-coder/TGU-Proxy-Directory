@@ -83,5 +83,5 @@ It does not replace the global GitHub collector, does not verify individual Russ
 - Setup: [docs/RU_CHECKER_SETUP.md](docs/RU_CHECKER_SETUP.md)
 - Latest RU cloud results (once configured): [data/ru-health.json](data/ru-health.json)
 - The new monochrome GitHub Pages UI displays this separate dataset without changing global proxy counts.
-- Function deployment ZIP is available as an artifact from the RU Checker offline tests workflow.
+- Function deployment ZIP is available as an artifact from the RU Checker offline tests workflow. Run the separate manual RU Checker cloud smoke test to verify eight proxies without committing or publishing.
 - Cloud resources and GitHub Secrets must be configured by the account owner; no Yandex deployment happens automatically.
