@@ -79,6 +79,42 @@ class RUCheckerTest(unittest.TestCase):
         batch = prepare(catalog(), {"cursor": 3}, 2)
         self.assertEqual([item(4)["id"], item(1)["id"]], [x["id"] for x in batch["proxies"]])
 
+    def test_priority_recheck_does_not_starve_rotation(self):
+        dt = datetime(2026, 11, 19, 3, 0, tzinfo=timezone.utc)
+        entries = catalog(40)
+        previous = {"cursor": 0, "checks": [
+            {"proxy_id": item(20)["id"], "status": "working", "checked_at": "2026-11-19T01:00:00Z"},
+            {"proxy_id": item(21)["id"], "status": "working", "checked_at": "2026-11-19T01:30:00Z"},
+            {"proxy_id": item(22)["id"], "status": "working", "checked_at": "2026-11-19T02:50:00Z"},
+        ]}
+        batch = prepare(entries, previous, 8, now=dt)
+        ids = [x["id"] for x in batch["proxies"]]
+        self.assertEqual(8, len(ids))
+        self.assertEqual(8, len(set(ids)))
+        self.assertIn(item(20)["id"], ids)
+        self.assertIn(item(21)["id"], ids)
+        self.assertNotIn(item(22)["id"], ids)
+        self.assertEqual([item(i)["id"] for i in range(1, 7)], ids[2:])
+        self.assertEqual(6, batch["rotation_advance"])
+
+    def test_recent_success_not_rechecked_too_early(self):
+        dt = datetime(2026, 11, 19, 3, 0, tzinfo=timezone.utc)
+        recent = {"cursor": 0, "checks": [
+            {"proxy_id": item(20)["id"], "status": "working", "checked_at": "2026-11-19T02:30:00Z"},
+        ]}
+        batch = prepare(catalog(40), recent, 8, now=dt)
+        self.assertEqual([item(i)["id"] for i in range(1, 9)],
+                         [x["id"] for x in batch["proxies"]])
+        self.assertEqual(8, batch["rotation_advance"])
+
+    def test_expired_success_not_rechecked_as_priority(self):
+        dt = datetime(2026, 11, 19, 3, 0, tzinfo=timezone.utc)
+        old = {"checks": [
+            {"proxy_id": item(20)["id"], "status": "working", "checked_at": "2026-11-15T03:00:00Z"},
+        ]}
+        batch = prepare(catalog(40), old, 8, now=dt)
+        self.assertEqual(item(1)["id"], batch["proxies"][0]["id"])
+
     def test_merging_and_expiration(self):
         dt = datetime(2026, 11, 19, tzinfo=timezone.utc)
         batch = prepare(catalog(), {"cursor": 0}, 2)

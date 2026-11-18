@@ -77,7 +77,7 @@ python scripts/collect.py --socks-limit 100
 
 ## RU Checker prototype (testing branch)
 
-A separate, optional **private Yandex Cloud Function** checks bounded batches from a Russian cloud network.
+A separate, optional **private Yandex Cloud Function** checks bounded batches from a Russian cloud network. Each batch prioritizes up to 25% previously working RU proxies (retested no more frequently than 45 minutes), with the rest scanning the global catalog in a persistent round robin.
 It does not replace the global GitHub collector, does not verify individual Russian mobile operators, and does not read Telegram user data.
 
 - Setup: [docs/RU_CHECKER_SETUP.md](docs/RU_CHECKER_SETUP.md)

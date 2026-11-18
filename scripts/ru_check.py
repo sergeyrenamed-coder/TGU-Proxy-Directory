@@ -8,6 +8,8 @@ from pathlib import Path
 
 ID_RE = re.compile(r"^[a-f0-9]{20}$")
 MAX_BATCH = 32
+PRIORITY_MAX = 8
+PRIORITY_RECHECK_MINUTES = 45
 
 def utc_now():
     return datetime.now(timezone.utc)
@@ -55,15 +57,49 @@ def candidates(catalog):
         prepared.append(entry)
     return prepared
 
-def prepare(catalog, health, count=MAX_BATCH):
+def prepare(catalog, health, count=MAX_BATCH, now=None):
+    """Reserve up to 25% of each batch for previously RU-working proxies.
+
+    Only confirmed working checks older than 45 minutes get priority.
+    Remaining slots rotate through the entire live catalog without starvation.
+    """
+    now = now or utc_now()
     entries = candidates(catalog)
     if not entries:
         raise ValueError("No eligible proxies")
     if not 1 <= count <= MAX_BATCH:
         raise ValueError("Batch count must be 1..32")
-    start = int(health.get("cursor", 0)) % len(entries)
-    selected = [entries[(start + pos) % len(entries)] for pos in range(min(count, len(entries)))]
-    return {"schema_version": 1, "proxies": selected}
+    by_id = {entry["id"]: entry for entry in entries}
+    due_before = now - timedelta(minutes=PRIORITY_RECHECK_MINUTES)
+    fresh_after = now - timedelta(hours=24)
+    due = {}
+    for check in health.get("checks", []):
+        if not isinstance(check, dict) or check.get("status") != "working":
+            continue
+        pid = check.get("proxy_id")
+        when = parse_time(check.get("checked_at"))
+        if pid not in by_id or when is None or not fresh_after <= when <= due_before:
+            continue
+        previous = due.get(pid)
+        if previous is None or when < previous:
+            due[pid] = when
+
+    batch_size = min(count, len(entries))
+    priority_limit = min(PRIORITY_MAX, count // 4, batch_size)
+    # Fairness: the oldest successful RU verification is checked first.
+    priority_ids = sorted(due, key=lambda pid: (due[pid], pid))[:priority_limit]
+    selected = [by_id[pid] for pid in priority_ids]
+    chosen = set(priority_ids)
+    cursor = int(health.get("cursor", 0))
+    start = cursor % len(entries)
+    scanned = 0
+    while len(selected) < batch_size and scanned < len(entries):
+        entry = entries[(start + scanned) % len(entries)]
+        scanned += 1
+        if entry["id"] not in chosen:
+            selected.append(entry)
+            chosen.add(entry["id"])
+    return {"schema_version": 1, "proxies": selected, "rotation_advance": scanned}
 
 def merge(catalog, health, request, answer, now=None):
     now = now or utc_now()
@@ -71,6 +107,9 @@ def merge(catalog, health, request, answer, now=None):
         raise ValueError("Invalid RU checker reply")
     selected = {p["id"]: p["type"] for p in request["proxies"]}
     reported = answer.get("results")
+    advance = request.get("rotation_advance", len(selected))
+    if type(advance) is not int or not 0 <= advance <= len(candidates(catalog)):
+        raise ValueError("Invalid rotation advance")
     if not selected or not isinstance(reported, list) or len(reported) != len(selected):
         raise ValueError("Missing RU results")
     present = set()
@@ -114,7 +153,8 @@ def merge(catalog, health, request, answer, now=None):
     return {
         "schema_version": 1, "service": "TGU RU Checker",
         "checker": "yandex_cloud_ru", "generated_at": iso(now),
-        "status": "active", "cursor": int(health.get("cursor", 0)) + len(selected),
+        "status": "active",
+        "cursor": int(health.get("cursor", 0)) + request.get("rotation_advance", len(selected)),
         "ttl_hours": 24,
         "totals": {
             "catalog": size, "checked": len(checks), "working": successes,
