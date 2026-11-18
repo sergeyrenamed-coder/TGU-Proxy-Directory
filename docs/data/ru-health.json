@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "service": "TGU RU Checker",
+  "checker": "yandex_cloud_ru",
+  "generated_at": null,
+  "status": "not_configured",
+  "cursor": 0,
+  "ttl_hours": 24,
+  "totals": {
+    "catalog": 0,
+    "checked": 0,
+    "working": 0,
+    "failed": 0,
+    "coverage_percent": 0
+  },
+  "checks": []
+}
