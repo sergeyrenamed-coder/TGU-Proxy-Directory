@@ -49,6 +49,9 @@
       if (state.ruOnly && ru.get(p.id)?.status !== "working") return false;
       return [p.server, p.country, p.type, ...(p.sources || [])].join(" ").toLowerCase().includes(query);
     });
+    // In RU-only mode show fastest verified connections first, not feed order.
+    if (state.ruOnly) visible.sort((a, b) =>
+      (ru.get(a.id)?.latency_ms ?? Infinity) - (ru.get(b.id)?.latency_ms ?? Infinity));
     $("visible-count").textContent = number(visible.length) + " / " + number(state.proxies.length) + " ENDPOINTS · ПОКАЗАНО " + number(Math.min(200,visible.length));
     if (!visible.length) {
       $("proxy-rows").innerHTML = '<tr><td colspan="6" class="empty-cell">По заданным условиям прокси не найдены.</td></tr>';
@@ -57,7 +60,7 @@
     $("proxy-rows").innerHTML = visible.slice(0,200).map(p => {
       const proof = ru.get(p.id);
       const rtt = p.rtt_ms == null ? "—" : Math.round(Number(p.rtt_ms)) + " ms";
-      const ruText = proof?.status === "working" ? "● RU VERIFIED" : proof?.status === "failed" ? "○ RU FAILED" : "—";
+      const ruText = proof?.status === "working" ? "● RU VERIFIED · " + Math.round(Number(proof.latency_ms)) + " ms" : proof?.status === "failed" ? "○ RU FAILED" : "—";
       return '<tr><td><span class="hostname">' + safe(p.server) + '</span><span class="port">:' + safe(p.port) + '</span></td>' +
         '<td><span class="protocol">' + safe(p.type) + '</span></td>' +
         '<td class="dim">' + safe(p.country || "—") + '</td>' +

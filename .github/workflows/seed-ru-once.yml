@@ -1,0 +1,45 @@
+name: Seed RU results from one-off 400 proxy scan
+
+on:
+  push:
+    branches:
+      - test/ru-checker-yandex-mvp
+    paths:
+      - ".github/ru-seed-once-trigger.txt"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  import-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check importer offline
+        run: |
+          python -m unittest discover -s tests -p 'test_import_ru_bulk.py' -v
+          python -m compileall -q scripts/import_ru_bulk.py
+      - name: Retrieve original 400-proxy GitHub Actions report
+        uses: actions/download-artifact@v4
+        with:
+          name: tgu-ru-400-proxy-report
+          repository: sergeyrenamed-coder/TGU-Proxy-Directory
+          run-id: 44408358945
+          github-token: ${{ github.token }}
+          path: .ru-import
+      - name: Verify report and write RU-only feeds
+        run: python -m scripts.import_ru_bulk --report .ru-import/ru-bulk-400-report.json
+      - name: Commit initial RU-health data on test branch only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ru-health.json docs/data/ru-health.json
+          git diff --cached --check
+          git diff --cached --quiet || (git commit -m "data: seed RU 400-proxy results from Yandex check" && git push)
