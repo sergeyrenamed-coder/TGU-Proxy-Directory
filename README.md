@@ -74,3 +74,14 @@ These are public third-party proxy endpoints, not TGU-operated servers. A proxy 
 python -m unittest discover -s tests -v
 python scripts/collect.py --socks-limit 100
 ```
+
+## RU Checker prototype (testing branch)
+
+A separate, optional **private Yandex Cloud Function** checks bounded batches from a Russian cloud network. Each batch prioritizes up to 25% previously working RU proxies (retested no more frequently than 45 minutes), with the rest scanning the global catalog in a persistent round robin.
+It does not replace the global GitHub collector, does not verify individual Russian mobile operators, and does not read Telegram user data.
+
+- Setup: [docs/RU_CHECKER_SETUP.md](docs/RU_CHECKER_SETUP.md)
+- Latest RU cloud results (once configured): [data/ru-health.json](data/ru-health.json)
+- The new monochrome GitHub Pages UI displays this separate dataset without changing global proxy counts.
+- Function deployment ZIP is available as an artifact from the RU Checker offline tests workflow. Run `Update TGU proxy catalog` in the test branch with `ru_smoke=true` to verify eight proxies without committing or publishing.
+- Cloud resources and GitHub Secrets must be configured by the account owner; no Yandex deployment happens automatically.

@@ -1,130 +1,159 @@
 (() => {
-  'use strict';
-  const API_URL = 'https://raw.githubusercontent.com/sergeyrenamed-coder/TGU-Proxy-Directory/main/data/proxies.json';
-  const $ = (id) => document.getElementById(id);
-  const state = { proxies: [], filter: 'all', query: '' };
-  $('year').textContent = String(new Date().getFullYear());
+  "use strict";
+  const API = "https://raw.githubusercontent.com/sergeyrenamed-coder/TGU-Proxy-Directory/main/data/proxies.json";
+  const $ = id => document.getElementById(id);
+  const state = { proxies: [], filter: "all", query: "", ruOnly: false, ru: null };
+  $("year").textContent = String(new Date().getFullYear());
 
-  function escapeHtml(value) {
-    return String(value == null ? '' : value).replace(/[&<>"']/g, (char) => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    })[char]);
+  const safe = value => String(value ?? "").replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
+  const number = value => Number(value || 0).toLocaleString("ru-RU");
+  const date = value => {
+    if (!value) return "—";
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? "—" : d.toLocaleString("ru-RU", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
+  };
+  function toast(message) {
+    const node = $("toast");
+    node.textContent = message;
+    node.classList.add("show");
+    clearTimeout(toast.timeout);
+    toast.timeout = setTimeout(() => node.classList.remove("show"), 1800);
   }
-  function formatDate(value) {
-    if (!value) return '—';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return String(value);
-    return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
-  }
-  function notify(message) {
-    const toast = $('toast');
-    toast.textContent = message;
-    toast.classList.add('show');
-    window.clearTimeout(notify.timer);
-    notify.timer = window.setTimeout(() => toast.classList.remove('show'), 1800);
-  }
-  async function copy(text) {
-    try {
-      await navigator.clipboard.writeText(text);
-      notify('Copied to clipboard');
-    } catch (_) {
-      notify('Clipboard is unavailable in this browser');
-    }
+  function clipboard(value) {
+    navigator.clipboard?.writeText(value).then(() => toast("Скопировано")).catch(() => toast("Не удалось скопировать"));
   }
   function proxyLink(proxy) {
-    if (proxy.type === 'MTProto') {
-      return 'tg://proxy?server=' + encodeURIComponent(proxy.server) + '&port=' + encodeURIComponent(proxy.port) + '&secret=' + encodeURIComponent(proxy.secret || '');
+    if (proxy.type === "MTProto") {
+      return "tg://proxy?server=" + encodeURIComponent(proxy.server) + "&port=" + encodeURIComponent(proxy.port) + "&secret=" + encodeURIComponent(proxy.secret || "");
     }
-    return String(proxy.server) + ':' + String(proxy.port);
+    return String(proxy.server) + ":" + String(proxy.port);
   }
-  function renderRows() {
+  function isRuFresh(health) {
+    const checked = Date.parse(health?.generated_at || "");
+    return health?.status === "active" && Number.isFinite(checked) &&
+      checked <= Date.now() && Date.now() - checked <= 24 * 60 * 60 * 1000;
+  }
+  function ruMap() {
+    if (!isRuFresh(state.ru)) return new Map();
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    return new Map((state.ru.checks || [])
+      .filter(item => Date.parse(item.checked_at) >= cutoff)
+      .map(item => [item.proxy_id, item]));
+  }
+  function renderProxies() {
+    const ru = ruMap();
     const query = state.query.toLowerCase();
-    const filtered = state.proxies.filter((proxy) => {
-      const protocolOk = state.filter === 'all' || proxy.type === state.filter;
-      const text = [proxy.server, proxy.country, proxy.type, ...(proxy.sources || [])].join(' ').toLowerCase();
-      return protocolOk && text.includes(query);
+    const visible = state.proxies.filter(p => {
+      if (state.filter !== "all" && p.type !== state.filter) return false;
+      if (state.ruOnly && ru.get(p.id)?.status !== "working") return false;
+      return [p.server, p.country, p.type, ...(p.sources || [])].join(" ").toLowerCase().includes(query);
     });
-    $('visible-count').textContent = filtered.length + ' / ' + state.proxies.length + ' ENDPOINTS';
-    if (!filtered.length) {
-      $('proxy-rows').innerHTML = '<tr><td colspan="7" class="empty">No matching endpoints in the current catalog.</td></tr>';
+    // In RU-only mode show fastest verified connections first, not feed order.
+    if (state.ruOnly) visible.sort((a, b) =>
+      (ru.get(a.id)?.latency_ms ?? Infinity) - (ru.get(b.id)?.latency_ms ?? Infinity));
+    $("visible-count").textContent = number(visible.length) + " / " + number(state.proxies.length) + " ENDPOINTS · ПОКАЗАНО " + number(Math.min(200,visible.length));
+    if (!visible.length) {
+      $("proxy-rows").innerHTML = '<tr><td colspan="6" class="empty-cell">По заданным условиям прокси не найдены.</td></tr>';
       return;
     }
-    $('proxy-rows').innerHTML = filtered.slice(0, 250).map((proxy) => {
-      const isSocks = proxy.type === 'SOCKS5';
-      const stale = Boolean(proxy.stale);
-      const rtt = proxy.rtt_ms == null ? '—' : Math.round(Number(proxy.rtt_ms)) + ' ms';
-      const uptime = proxy.uptime == null ? '—' : (Number(proxy.uptime) <= 1 ? (Number(proxy.uptime) * 100).toFixed(0) : Number(proxy.uptime).toFixed(0)) + '%';
-      const action = escapeHtml(proxyLink(proxy));
-      return '<tr>' +
-        '<td><span class="endpoint">' + escapeHtml(proxy.server) + '</span><span class="port">:' + escapeHtml(proxy.port) + '</span></td>' +
-        '<td><span class="protocol ' + (isSocks ? 'socks' : '') + '">' + escapeHtml(proxy.type) + '</span></td>' +
-        '<td><span class="region">' + escapeHtml(proxy.country || '—') + '</span></td>' +
-        '<td><span class="latency">' + escapeHtml(rtt) + '</span></td>' +
-        '<td><span class="uptime">' + escapeHtml(uptime) + '</span></td>' +
-        '<td><span class="state ' + (stale ? 'stale' : '') + '"><i></i>' + (stale ? 'STALE' : 'IN CATALOG') + '</span></td>' +
-        '<td><button class="copy-row" data-copy="' + action + '">COPY ' + (isSocks ? 'ADDRESS' : 'LINK') + '</button></td>' +
-      '</tr>';
-    }).join('');
-    document.querySelectorAll('[data-copy]').forEach((button) => {
-      button.addEventListener('click', () => copy(button.getAttribute('data-copy')));
-    });
+    $("proxy-rows").innerHTML = visible.slice(0,200).map(p => {
+      const proof = ru.get(p.id);
+      const rtt = p.rtt_ms == null ? "—" : Math.round(Number(p.rtt_ms)) + " ms";
+      const ruText = proof?.status === "working" ? "● RU VERIFIED · " + Math.round(Number(proof.latency_ms)) + " ms" : proof?.status === "failed" ? "○ RU FAILED" : "—";
+      return '<tr><td><span class="hostname">' + safe(p.server) + '</span><span class="port">:' + safe(p.port) + '</span></td>' +
+        '<td><span class="protocol">' + safe(p.type) + '</span></td>' +
+        '<td class="dim">' + safe(p.country || "—") + '</td>' +
+        '<td class="dim">' + safe(rtt) + '</td>' +
+        '<td><span class="ru-tag ' + (proof?.status === "working" ? "yes" : "") + '">' + ruText + '</span></td>' +
+        '<td><button class="copy-link" type="button" data-copy="' + safe(proxyLink(p)) + '">COPY ↗</button></td></tr>';
+    }).join("");
+  }
+  function renderRU(health) {
+    const active = isRuFresh(health);
+    const totals = health?.totals || {};
+    $("ru-working-count").textContent = active ? number(totals.working) : "—";
+    $("ru-checked").textContent = active ? number(totals.checked) : "—";
+    $("ru-coverage").textContent = active ? Number(totals.coverage_percent || 0).toFixed(1) + "%" : "—";
+    $("ru-updated").textContent = active ? date(health.generated_at) : "—";
+    $("ru-state").textContent = active ? "● RU CLOUD RESULTS AVAILABLE" :
+      health?.status === "active" ? "○ RU CHECKER: ДАННЫЕ УСТАРЕЛИ" : "○ RU CHECKER НЕ НАСТРОЕН";
+    const byId = new Map(state.proxies.map(p => [p.id, p]));
+    const matches = active ? (health.checks || [])
+      .filter(x => x.status === "working" && byId.has(x.proxy_id) &&
+        Date.parse(x.checked_at) >= Date.now() - 24 * 60 * 60 * 1000)
+      .sort((a,b) => (a.latency_ms ?? 999999) - (b.latency_ms ?? 999999))
+      .slice(0, 5) : [];
+    $("ru-list").innerHTML = matches.length ? matches.map((item,i) => {
+      const proxy = byId.get(item.proxy_id);
+      return '<div class="result-item"><span class="result-rank">0' + (i+1) + '</span>' +
+        '<div class="result-host">' + safe(proxy.server) + ':' + safe(proxy.port) +
+        '<span class="result-meta">' + safe(proxy.type) + ' · ' + safe(date(item.checked_at)) + '</span></div>' +
+        '<strong class="result-rtt">' + safe(item.latency_ms) + ' ms</strong></div>';
+    }).join("") : '<div class="empty-panel">' +
+      (active ? "За последние 24 часа подтверждённых из РФ прокси пока нет." :
+        "После настройки Yandex Cloud Functions здесь появятся реальные результаты RU-проверки.") + '</div>';
   }
   function renderSources(stats) {
-    const sources = Array.isArray(stats.sources) ? stats.sources : [];
-    $('source-grid').innerHTML = sources.map((source) => {
-      const status = source.status || 'unknown';
-      const label = status === 'ok' ? 'ONLINE' : status === 'error' ? 'ERROR' : 'UNKNOWN';
-      const error = source.error ? '<div class="source-error">' + escapeHtml(source.error) + '</div>' : '';
-      return '<article class="source-card">' +
-        '<div class="source-top"><div class="source-name">' + escapeHtml(source.name) + '</div>' +
-        '<div class="source-state ' + escapeHtml(status) + '"><i></i>' + label + '</div></div>' +
-        '<div class="source-numbers">' +
-        '<div class="source-number"><strong>' + Number(source.fetched || 0).toLocaleString() + '</strong><span>FETCHED</span></div>' +
-        '<div class="source-number"><strong>' + Number(source.usable || 0).toLocaleString() + '</strong><span>TGU USABLE</span></div>' +
-        '<div class="source-number"><strong>' + Number(source.unsupported || 0).toLocaleString() + '</strong><span>SKIPPED</span></div>' +
-        '</div>' + error + '</article>';
-    }).join('') || '<div class="source-card">No source status available yet.</div>';
+    const list = Array.isArray(stats.sources) ? stats.sources : [];
+    $("source-grid").innerHTML = list.length ? list.map(source => {
+      const online = source.status === "ok";
+      return '<article class="source-card"><div class="source-title"><span>' + safe(source.name) + '</span>' +
+        '<span class="source-status ' + (online ? "" : "error") + '">' + (online ? "● ONLINE" : "○ ERROR") + '</span></div>' +
+        '<div class="source-numbers"><div><strong>' + number(source.fetched) + '</strong><span>FETCHED</span></div>' +
+        '<div><strong>' + number(source.usable) + '</strong><span>USABLE</span></div>' +
+        '<div><strong>' + number(source.unsupported) + '</strong><span>SKIPPED</span></div></div>' +
+        (source.error ? '<p class="source-error">' + safe(source.error) + '</p>' : '') + '</article>';
+    }).join("") : '<div class="source-card">Пока нет сведений об источниках.</div>';
   }
   async function load() {
     try {
-      const options = { cache: 'no-store' };
-      const [proxyResponse, statsResponse] = await Promise.all([
-        fetch('./data/proxies.json?ts=' + Date.now(), options),
-        fetch('./data/stats.json?ts=' + Date.now(), options)
+      const stamp = "?v=" + Date.now();
+      const opt = { cache:"no-store" };
+      const [c,s,r] = await Promise.all([
+        fetch("./data/proxies.json"+stamp,opt),
+        fetch("./data/stats.json"+stamp,opt),
+        fetch("./data/ru-health.json"+stamp,opt).catch(() => null)
       ]);
-      if (!proxyResponse.ok || !statsResponse.ok) throw new Error('Catalog files are not published yet.');
-      const [catalog, stats] = await Promise.all([proxyResponse.json(), statsResponse.json()]);
+      if (!c.ok || !s.ok) throw new Error("Основной каталог недоступен.");
+      const [catalog,stats] = await Promise.all([c.json(),s.json()]);
+      let health = null;
+      if (r?.ok) health = await r.json().catch(() => null);
       state.proxies = Array.isArray(catalog.proxies) ? catalog.proxies : [];
+      // RU records are deliberately separate from the global catalog.
+      state.ru = health;
       const counts = catalog.counts || stats.totals || {};
-      $('total-count').textContent = Number(counts.total || 0).toLocaleString();
-      $('mtproto-count').textContent = Number(counts.mtproto || 0).toLocaleString();
-      $('socks-count').textContent = Number(counts.socks5 || 0).toLocaleString();
-      $('stale-count').textContent = Number(counts.stale || 0).toLocaleString();
-      $('last-updated').textContent = formatDate(catalog.generated_at || stats.generated_at);
-      const overall = $('overall-status');
-      overall.innerHTML = '<i></i> ' + (stats.overall_status === 'partial' ? 'PARTIAL SOURCE OUTAGE' : 'CATALOG ONLINE');
-      if (stats.overall_status === 'partial') overall.style.color = 'var(--warn)';
-      renderRows();
+      $("total-count").textContent = number(counts.total);
+      $("mtproto-count").textContent = number(counts.mtproto);
+      $("socks-count").textContent = number(counts.socks5);
+      $("last-updated").textContent = date(catalog.generated_at || stats.generated_at);
+      $("overall-status").textContent = stats.overall_status === "partial" ? "○ ЧАСТИЧНЫЙ СБОЙ ИСТОЧНИКОВ" : "● КАТАЛОГ ДОСТУПЕН";
+      renderRU(health);
+      renderProxies();
       renderSources(stats);
     } catch (error) {
-      $('overall-status').innerHTML = '<i></i> CATALOG UNAVAILABLE';
-      $('overall-status').style.color = 'var(--danger)';
-      $('proxy-rows').innerHTML = '<tr><td colspan="7" class="empty">' + escapeHtml(error.message) + '</td></tr>';
-      $('source-grid').innerHTML = '<div class="source-card">Waiting for the first successful GitHub Actions collection run.</div>';
+      $("overall-status").textContent = "○ КАТАЛОГ НЕДОСТУПЕН";
+      $("proxy-rows").innerHTML = '<tr><td colspan="6" class="empty-cell">' + safe(error.message) + '</td></tr>';
+      $("ru-state").textContent = "○ НЕТ ДАННЫХ";
     }
   }
-  $('search').addEventListener('input', (event) => {
-    state.query = event.target.value || '';
-    renderRows();
+  $("search").addEventListener("input", e => { state.query = e.target.value || ""; renderProxies(); });
+  document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
+    document.querySelectorAll("[data-filter]").forEach(x => x.classList.remove("active"));
+    button.classList.add("active");
+    state.filter = button.dataset.filter;
+    renderProxies();
+  }));
+  $("ru-only").addEventListener("click", e => {
+    state.ruOnly = !state.ruOnly;
+    e.currentTarget.classList.toggle("active",state.ruOnly);
+    e.currentTarget.setAttribute("aria-pressed",String(state.ruOnly));
+    renderProxies();
   });
-  document.querySelectorAll('[data-filter]').forEach((button) => {
-    button.addEventListener('click', () => {
-      document.querySelectorAll('[data-filter]').forEach((item) => item.classList.remove('active'));
-      button.classList.add('active');
-      state.filter = button.getAttribute('data-filter');
-      renderRows();
-    });
+  $("proxy-rows").addEventListener("click", e => {
+    const button = e.target.closest("[data-copy]");
+    if (button) clipboard(button.getAttribute("data-copy"));
   });
-  $('copy-api').addEventListener('click', () => copy(API_URL));
+  $("copy-api").addEventListener("click", () => clipboard(API));
   load();
 })();

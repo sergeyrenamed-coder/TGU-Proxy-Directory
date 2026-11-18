@@ -7,6 +7,11 @@ on:
         description: "Maximum monosans SOCKS5 candidates to test"
         required: false
         default: "1000"
+      ru_smoke:
+        description: "Only test eight proxies via Yandex Cloud (do not update catalog or Pages)"
+        type: boolean
+        required: false
+        default: false
   schedule:
     - cron: "*/15 * * * *"
   push:
@@ -28,6 +33,7 @@ concurrency:
 
 jobs:
   collect-and-deploy:
+    if: ${{ !inputs.ru_smoke }}
     name: Collect, validate and publish
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -53,6 +59,24 @@ jobs:
         env:
           SOCKS_LIMIT: ${{ github.event.inputs.socks_limit || '1000' }}
         run: python scripts/collect.py --socks-limit "$SOCKS_LIMIT"
+
+      - name: RU cloud verification (optional Yandex Cloud Function)
+        continue-on-error: true
+        env:
+          TGU_RU_FUNCTION_URL: ${{ secrets.TGU_RU_FUNCTION_URL }}
+          TGU_RU_FUNCTION_API_KEY: ${{ secrets.TGU_RU_FUNCTION_API_KEY }}
+        run: |
+          if [ -z "$TGU_RU_FUNCTION_URL" ] || [ -z "$TGU_RU_FUNCTION_API_KEY" ]; then
+            echo "RU Checker is not configured; global catalog continues normally."
+            exit 0
+          fi
+          case "$TGU_RU_FUNCTION_URL" in
+            https://functions.yandexcloud.net/*) ;;
+            *) echo "::error::Invalid Yandex Function HTTPS URL"; exit 1 ;;
+          esac
+          python scripts/ru_check.py prepare --request "$RUNNER_TEMP/tgu-ru-request.json"
+          curl --silent --show-error --fail-with-body --max-time 90 --connect-timeout 10 --request POST --header "Authorization: Api-Key $TGU_RU_FUNCTION_API_KEY" --header "Content-Type: application/json" --data-binary @"$RUNNER_TEMP/tgu-ru-request.json" --output "$RUNNER_TEMP/tgu-ru-response.json" "$TGU_RU_FUNCTION_URL"
+          python scripts/ru_check.py merge --request "$RUNNER_TEMP/tgu-ru-request.json" --response "$RUNNER_TEMP/tgu-ru-response.json"
 
       - name: Sync catalog to RNMDStore Netlify API
         continue-on-error: true
@@ -119,3 +143,35 @@ jobs:
         if: steps.pages.outcome == 'success'
         id: deployment
         uses: actions/deploy-pages@v4
+
+  ru-smoke-only:
+    name: RU Cloud smoke test without publishing
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.ru_smoke }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test eight RU egress proxies
+        env:
+          TGU_RU_FUNCTION_URL: ${{ secrets.TGU_RU_FUNCTION_URL }}
+          TGU_RU_FUNCTION_API_KEY: ${{ secrets.TGU_RU_FUNCTION_API_KEY }}
+        run: |
+          if [ -z "$TGU_RU_FUNCTION_URL" ] || [ -z "$TGU_RU_FUNCTION_API_KEY" ]; then
+            echo "::error::Configure both TGU_RU_FUNCTION_URL and TGU_RU_FUNCTION_API_KEY."
+            exit 1
+          fi
+          case "$TGU_RU_FUNCTION_URL" in
+            https://functions.yandexcloud.net/*) ;;
+            *) echo "::error::Yandex Function HTTPS URL required."; exit 1 ;;
+          esac
+          python scripts/ru_check.py prepare --size 8 --request "$RUNNER_TEMP/tgu-ru-smoke-request.json"
+          curl --silent --show-error --fail-with-body --max-time 90 --connect-timeout 10 --request POST --header "Authorization: Api-Key $TGU_RU_FUNCTION_API_KEY" --header "Content-Type: application/json" --data-binary @"$RUNNER_TEMP/tgu-ru-smoke-request.json" --output "$RUNNER_TEMP/tgu-ru-smoke-response.json" "$TGU_RU_FUNCTION_URL"
+          python scripts/ru_check.py merge --request "$RUNNER_TEMP/tgu-ru-smoke-request.json" --response "$RUNNER_TEMP/tgu-ru-smoke-response.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tgu-ru-cloud-smoke-result
+          path: data/ru-health.json
+          retention-days: 14
