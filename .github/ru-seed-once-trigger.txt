@@ -1,2 +1,0 @@
-Seed RU data from original GitHub Actions artifact 44408358945 (400 checks).
-One-shot, branch scoped, no production changes.
