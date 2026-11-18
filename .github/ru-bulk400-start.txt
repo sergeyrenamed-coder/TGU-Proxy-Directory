@@ -1,0 +1,2 @@
+TGU RU Checker one-time 400-proxy check requested by user.
+Only this test branch, no production publication. 2026-11-19.
