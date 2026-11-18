@@ -35,6 +35,46 @@ class RUCheckerTest(unittest.TestCase):
         self.assertEqual("working", json.loads(answer["body"])["results"][0]["status"])
         check.assert_called_once()
 
+    def test_network_diagnostics_has_fixed_targets(self):
+        from ru_checker.main import DIAGNOSTIC_TARGETS
+        self.assertEqual(["internet_ip", "internet_dns", "telegram_dc"],
+                         [target[0] for target in DIAGNOSTIC_TARGETS])
+        class FakeSocket:
+            def close(self): pass
+        with patch("ru_checker.main.connect_public_socket", return_value=FakeSocket()) as connection:
+            answer = handler({"httpMethod": "POST", "body": json.dumps({
+                "schema_version": 1, "mode": "network_diagnostics",
+                "targets": ["127.0.0.1"],
+            })}, None)
+        body = json.loads(answer["body"])
+        self.assertEqual(200, answer["statusCode"])
+        self.assertEqual(3, len(body["network"]))
+        self.assertEqual(3, connection.call_count)
+        self.assertEqual("reachable", body["network"][0]["status"])
+        self.assertNotIn("127.0.0.1", str(connection.call_args_list))
+
+    def test_network_diagnostics_reports_connect_failures(self):
+        with patch("ru_checker.main.connect_public_socket", side_effect=TimeoutError("timed out")):
+            result = handler({"httpMethod": "POST", "body": json.dumps({
+                "schema_version": 1, "mode": "network_diagnostics",
+            })}, None)
+        body = json.loads(result["body"])
+        self.assertEqual(200, result["statusCode"])
+        self.assertTrue(all(item["status"] == "failed" for item in body["network"]))
+        self.assertTrue(all("TimeoutError" in item["error"] for item in body["network"]))
+
+    def test_probe_results_include_precise_failure_reason(self):
+        with patch("ru_checker.main.probe_mtproto_candidate",
+                   return_value=(False, 3510, "TCP connect:OSError:No reachable public address (TimeoutError)")):
+            result = handler({"httpMethod": "POST", "body": json.dumps({
+                "schema_version": 1, "proxies": [item(1)],
+            })}, None)
+        report = json.loads(result["body"])["results"][0]
+        self.assertEqual("timeout", report["failure_code"])
+        self.assertEqual("TCP connect", report["failure_stage"])
+        self.assertIn("TimeoutError", report["failure_detail"])
+        self.assertEqual(3510, report["elapsed_ms"])
+
     def test_rotating_batches(self):
         batch = prepare(catalog(), {"cursor": 3}, 2)
         self.assertEqual([item(4)["id"], item(1)["id"]], [x["id"] for x in batch["proxies"]])

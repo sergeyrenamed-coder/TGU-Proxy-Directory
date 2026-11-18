@@ -344,7 +344,10 @@ def connect_public_socket(host: str, port: int, timeout: float) -> socket.socket
         except Exception as exc:
             last_error = exc
     if last_error:
-        raise OSError("No reachable public address for proxy host.") from last_error
+        # Keep the actual socket failure class so Cloud Functions can distinguish
+        # timeouts, resets, and permission errors. Never include connection secrets.
+        detail = f"{type(last_error).__name__}: {str(last_error)[:100]}"
+        raise OSError(f"No reachable public address for proxy host ({detail}).") from last_error
     raise OSError("Proxy host did not resolve to a public IP address.")
 
 
