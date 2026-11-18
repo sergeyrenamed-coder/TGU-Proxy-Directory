@@ -1,73 +1,98 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090d12">
-  <meta name="description" content="Live proxy catalog for TGU — aggregated and refreshed automatically.">
-  <title>TGU Proxy Directory</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#050505">
+  <meta name="description" content="TGU Proxy Directory — global and RU-cloud Telegram proxy availability index.">
+  <title>TGU / Proxy Directory</title>
   <link rel="stylesheet" href="./assets/styles.css">
-  <script defer src="./assets/app.js"></script>
+  <script src="./assets/app.js" defer></script>
 </head>
 <body>
-  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
-  <header class="topbar">
-    <a class="brand" href="./"><span class="brand-mark">T</span><span>TGU<span class="brand-muted"> / DIRECTORY</span></span></a>
-    <div class="top-actions">
-      <span class="live-indicator"><i></i> LIVE CATALOG</span>
-      <a class="github-link" href="https://github.com/sergeyrenamed-coder/TGU-Proxy-Directory" target="_blank" rel="noreferrer">GitHub ↗</a>
+  <header class="site-header">
+    <div class="shell header-grid">
+      <a href="./" class="logo"><span class="logo-symbol">T</span><span class="logo-text">TGU<span class="logo-suffix"> / DIRECTORY</span></span></a>
+      <nav aria-label="Навигация">
+        <a href="#network">CATALOG</a>
+        <a href="#ru-check">RU CHECK</a>
+        <a href="#sources">SOURCES</a>
+      </nav>
+      <a class="github-top" href="https://github.com/sergeyrenamed-coder/TGU-Proxy-Directory" target="_blank" rel="noopener noreferrer">GITHUB <span>↗</span></a>
     </div>
   </header>
-
-  <main class="container">
+  <main class="shell">
     <section class="hero">
-      <div class="eyebrow"><span class="eyebrow-line"></span> TELEGRAM CONNECTIVITY INDEX</div>
-      <h1>One catalog.<br><span>Many routes.</span></h1>
-      <p class="hero-copy">A consolidated pool of public Telegram proxy endpoints. Sources are collected, normalized, deduplicated and refreshed automatically.</p>
-      <div class="hero-meta">
-        <span class="status-pill" id="overall-status"><i></i> Connecting to catalog</span>
-        <span class="updated-label">LAST UPDATE <strong id="last-updated">—</strong></span>
-      </div>
-    </section>
-
-    <section class="stats-grid" aria-label="Catalog statistics">
-      <article class="stat-card stat-primary"><div class="stat-label">AVAILABLE ENDPOINTS</div><div class="stat-value" id="total-count">—</div><div class="stat-foot">TGU-compatible records</div><span class="stat-icon">↗</span></article>
-      <article class="stat-card"><div class="stat-label">MTProto</div><div class="stat-value" id="mtproto-count">—</div><div class="stat-foot">Classic + padded-intermediate</div><span class="stat-icon">◈</span></article>
-      <article class="stat-card"><div class="stat-label">SOCKS5</div><div class="stat-value" id="socks-count">—</div><div class="stat-foot">Tunnel-tested to Telegram DC</div><span class="stat-icon">⇄</span></article>
-      <article class="stat-card"><div class="stat-label">STALE RECORDS</div><div class="stat-value" id="stale-count">—</div><div class="stat-foot">Retained during source outages</div><span class="stat-icon">◷</span></article>
-    </section>
-
-    <section class="section-block">
-      <div class="section-heading"><div><div class="eyebrow">01 / NETWORK POOL</div><h2>Proxy endpoints</h2></div><a class="text-link" href="https://raw.githubusercontent.com/sergeyrenamed-coder/TGU-Proxy-Directory/main/data/proxies.json" target="_blank" rel="noreferrer">Open JSON API ↗</a></div>
-      <div class="toolbar">
-        <label class="search-box"><span>⌕</span><input id="search" type="search" placeholder="Search host, country or source…" autocomplete="off"></label>
-        <div class="filters" role="group" aria-label="Protocol filter">
-          <button class="filter active" data-filter="all">All</button>
-          <button class="filter" data-filter="MTProto">MTProto</button>
-          <button class="filter" data-filter="SOCKS5">SOCKS5</button>
+      <div class="section-eyebrow"><span class="mini-line"></span> RNMDTEAM / TGU NETWORK INFRASTRUCTURE <span class="hero-edition">SYS.01 / 2026</span></div>
+      <h1>Routes.<br><span>Not restrictions.</span></h1>
+      <div class="hero-bottom">
+        <p>Открытый каталог MTProto и SOCKS5 для Telegram. Проверка по протоколу, регулярное обновление и отдельная диагностика из российской облачной сети.</p>
+        <div class="hero-health">
+          <span id="overall-status" class="status-label">◉ ЗАГРУЗКА КАТАЛОГА</span>
+          <span class="micro">ОБНОВЛЕНО <strong id="last-updated">—</strong></span>
         </div>
       </div>
-      <div class="table-wrap">
+      <div class="hero-matrix" aria-hidden="true"></div>
+    </section>
+    <section class="stats-section" aria-labelledby="overview-head">
+      <div class="section-top"><span class="section-number">01 / OVERVIEW</span><h2 id="overview-head">Состояние каталога</h2><span class="section-aside">LIVE DATA / JSON</span></div>
+      <div class="metric-grid">
+        <article class="metric main-metric"><span class="metric-caption">GLOBAL VERIFIED</span><strong id="total-count">—</strong><span class="metric-hint">Доступны из GitHub Actions</span></article>
+        <article class="metric"><span class="metric-caption">MTProto</span><strong id="mtproto-count">—</strong><span class="metric-hint">Protocol-level tested</span></article>
+        <article class="metric"><span class="metric-caption">SOCKS5</span><strong id="socks-count">—</strong><span class="metric-hint">Telegram DC CONNECT</span></article>
+        <article class="metric ru-metric"><span class="metric-caption">RU CLOUD VERIFIED</span><strong id="ru-working-count">—</strong><span class="metric-hint">Проверено из сети Яндекса</span></article>
+      </div>
+    </section>
+    <section id="ru-check" class="section-block" aria-labelledby="ru-head">
+      <div class="section-top"><span class="section-number">02 / RU NETWORK</span><h2 id="ru-head">RU Network Check</h2><a class="under-link" href="./data/ru-health.json" target="_blank" rel="noopener noreferrer">RU JSON ↗</a></div>
+      <div class="ru-layout">
+        <div class="ru-text">
+          <div class="ru-kicker"><span class="signal-dot"></span> YANDEX CLOUD / RUSSIAN EGRESS</div>
+          <h3>Ещё один<br>уровень проверки.</h3>
+          <p>Этот узел тестирует прокси из облачной сети РФ. Это отдельная проверка, а не гарантия работы на Мегафоне, Билайне, МТС, T2 или конкретном Wi‑Fi.</p>
+          <div id="ru-state" class="ru-state">Ожидание данных RU Checker</div>
+          <div class="ru-mini-stats">
+            <div><span>ПРОВЕРЕНО / 24Ч</span><strong id="ru-checked">—</strong></div>
+            <div><span>ПОКРЫТИЕ</span><strong id="ru-coverage">—</strong></div>
+            <div><span>ПОСЛЕДНИЙ ЗАПУСК</span><strong id="ru-updated">—</strong></div>
+          </div>
+        </div>
+        <div class="ru-results">
+          <div class="results-head"><span>RU VERIFIED ENDPOINTS</span><span>LATENCY / MS</span></div>
+          <div id="ru-list" class="result-list"><div class="empty-panel">Данные российской проверки пока отсутствуют.</div></div>
+          <p class="result-foot">Статистика за последние 24 часа · Проверка со стороны Yandex Cloud Functions</p>
+        </div>
+      </div>
+    </section>
+    <section id="network" class="section-block" aria-labelledby="pool-head">
+      <div class="section-top"><span class="section-number">03 / NETWORK POOL</span><h2 id="pool-head">Proxy Endpoints</h2><a class="under-link" href="./data/proxies.json" target="_blank" rel="noopener noreferrer">RAW JSON ↗</a></div>
+      <div class="toolbar">
+        <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Адрес, страна, источник..." autocomplete="off" aria-label="Поиск прокси"></label>
+        <div class="chips" role="group" aria-label="Протокол">
+          <button data-filter="all" class="chip active" type="button">ВСЕ</button>
+          <button data-filter="MTProto" class="chip" type="button">MTProto</button>
+          <button data-filter="SOCKS5" class="chip" type="button">SOCKS5</button>
+          <button id="ru-only" class="chip special" type="button" aria-pressed="false">RU VERIFIED</button>
+        </div>
+      </div>
+      <div class="table-area">
         <table>
-          <thead><tr><th>ENDPOINT</th><th>PROTOCOL</th><th>REGION</th><th>LATENCY</th><th>UPTIME</th><th>STATUS</th><th></th></tr></thead>
-          <tbody id="proxy-rows"><tr><td colspan="7" class="empty">Loading proxy catalog…</td></tr></tbody>
+          <thead><tr><th>ENDPOINT</th><th>PROTOCOL</th><th>REGION</th><th>GLOBAL RTT</th><th>RU STATUS</th><th></th></tr></thead>
+          <tbody id="proxy-rows"><tr><td colspan="6" class="empty-cell">Загрузка прокси...</td></tr></tbody>
         </table>
       </div>
-      <div class="table-footer"><span id="visible-count">—</span><span>Public sources · no account credentials stored</span></div>
+      <div class="table-footer"><span id="visible-count">—</span><span>Проверяйте доступность непосредственно на своём устройстве.</span></div>
     </section>
-
-    <section class="section-block sources-section">
-      <div class="section-heading"><div><div class="eyebrow">02 / INGESTION</div><h2>Source health</h2></div><span class="refresh-note">AUTO REFRESH · 15 MIN</span></div>
-      <div class="sources-grid" id="source-grid"><div class="source-card skeleton"></div><div class="source-card skeleton"></div><div class="source-card skeleton"></div></div>
+    <section id="sources" class="section-block" aria-labelledby="sources-head">
+      <div class="section-top"><span class="section-number">04 / PIPELINE</span><h2 id="sources-head">Источники данных</h2><span class="section-aside">AUTOMATED COLLECTOR</span></div>
+      <div class="source-grid" id="source-grid"><div class="source-card">Загрузка источников...</div></div>
     </section>
-
-    <section class="api-strip">
-      <div><div class="eyebrow">FOR THE ANDROID CLIENT</div><h3>One endpoint for TGU</h3><p>Use this URL as the catalog source. TGU-compatible records only; FakeTLS entries are excluded until the app engine supports them.</p></div>
-      <button class="copy-api" id="copy-api">COPY API URL <span>↗</span></button>
+    <section class="api-panel">
+      <div><span class="section-number">05 / DEVELOPER ACCESS</span><h2>One catalog.<br>One endpoint.</h2><p>Каталог прокси остаётся на GitHub Raw и доступен TGU независимо от работы российского чекера.</p></div>
+      <div class="api-actions"><button id="copy-api" type="button">СКОПИРОВАТЬ API URL <span>↗</span></button><a href="https://github.com/sergeyrenamed-coder/TGU-Proxy-Directory" target="_blank" rel="noopener noreferrer">ИСТОЧНИКИ НА GITHUB ↗</a></div>
     </section>
-
-    <footer><span>© <span id="year"></span> TGU Proxy Directory</span><span>Independent public catalog · Not affiliated with Telegram</span><a href="https://github.com/sergeyrenamed-coder/TGU-Proxy-Directory">SOURCE CODE ↗</a></footer>
+    <footer><span>© <span id="year"></span> RNMDTEAM / TGU</span><span>INDEPENDENT OPEN PROXY DIRECTORY</span><a href="https://github.com/sergeyrenamed-coder/TGU-Proxy-Directory">GITHUB ↗</a></footer>
   </main>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
