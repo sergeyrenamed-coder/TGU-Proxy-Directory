@@ -71,19 +71,25 @@
   }
   function renderRU(health) {
     const active = isRuFresh(health);
-    const totals = health?.totals || {};
-    $("ru-working-count").textContent = active ? number(totals.working) : "—";
-    $("ru-checked").textContent = active ? number(totals.checked) : "—";
-    $("ru-coverage").textContent = active ? Number(totals.coverage_percent || 0).toFixed(1) + "%" : "—";
-    $("ru-updated").textContent = active ? date(health.generated_at) : "—";
-    $("ru-state").textContent = active ? "● RU CLOUD RESULTS AVAILABLE" :
-      health?.status === "active" ? "○ RU CHECKER: ДАННЫЕ УСТАРЕЛИ" : "○ RU CHECKER НЕ НАСТРОЕН";
     const byId = new Map(state.proxies.map(p => [p.id, p]));
-    const matches = active ? (health.checks || [])
-      .filter(x => x.status === "working" && byId.has(x.proxy_id) &&
-        Date.parse(x.checked_at) >= Date.now() - 24 * 60 * 60 * 1000)
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    // Catalog changes between RU runs. Count only records present in the
+    // currently published global catalog and actually fresh for this visitor.
+    const currentChecks = active && Array.isArray(health?.checks) ? health.checks
+      .filter(x => byId.has(x.proxy_id) && Date.parse(x.checked_at) >= cutoff &&
+        Date.parse(x.checked_at) <= Date.now()) : [];
+    const verified = currentChecks.filter(x => x.status === "working");
+    const coverage = state.proxies.length ? 100 * currentChecks.length / state.proxies.length : 0;
+    $("ru-working-count").textContent = active ? number(verified.length) : "—";
+    $("ru-checked").textContent = active ? number(currentChecks.length) : "—";
+    $("ru-coverage").textContent = active ? coverage.toFixed(1) + "%" : "—";
+    $("ru-updated").textContent = active ? date(health.generated_at) : "—";
+    $("ru-state").textContent = active ?
+      (currentChecks.length ? "● RU CLOUD RESULTS AVAILABLE" : "○ НЕТ ПРОВЕРОК ДЛЯ ТЕКУЩЕГО КАТАЛОГА") :
+      health?.status === "active" ? "○ RU CHECKER: ДАННЫЕ УСТАРЕЛИ" : "○ RU CHECKER НЕ НАСТРОЕН";
+    const matches = verified
       .sort((a,b) => (a.latency_ms ?? 999999) - (b.latency_ms ?? 999999))
-      .slice(0, 5) : [];
+      .slice(0, 5);
     $("ru-list").innerHTML = matches.length ? matches.map((item,i) => {
       const proxy = byId.get(item.proxy_id);
       return '<div class="result-item"><span class="result-rank">0' + (i+1) + '</span>' +

@@ -75,7 +75,7 @@ jobs:
             *) echo "::error::Invalid Yandex Function HTTPS URL"; exit 1 ;;
           esac
           python scripts/ru_check.py prepare --request "$RUNNER_TEMP/tgu-ru-request.json"
-          curl --silent --show-error --fail-with-body --max-time 90 --connect-timeout 10 --request POST --header "Authorization: Api-Key $TGU_RU_FUNCTION_API_KEY" --header "Content-Type: application/json" --data-binary @"$RUNNER_TEMP/tgu-ru-request.json" --output "$RUNNER_TEMP/tgu-ru-response.json" "$TGU_RU_FUNCTION_URL"
+          curl --silent --show-error --fail-with-body --retry 2 --retry-all-errors --retry-delay 3 --max-time 120 --connect-timeout 25 --request POST --header "Authorization: Api-Key $TGU_RU_FUNCTION_API_KEY" --header "Content-Type: application/json" --data-binary @"$RUNNER_TEMP/tgu-ru-request.json" --output "$RUNNER_TEMP/tgu-ru-response.json" "$TGU_RU_FUNCTION_URL"
           python scripts/ru_check.py merge --request "$RUNNER_TEMP/tgu-ru-request.json" --response "$RUNNER_TEMP/tgu-ru-response.json"
 
       - name: Sync catalog to RNMDStore Netlify API
@@ -148,7 +148,7 @@ jobs:
     name: RU Cloud smoke test without publishing
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.ru_smoke }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -168,7 +168,7 @@ jobs:
             *) echo "::error::Yandex Function HTTPS URL required."; exit 1 ;;
           esac
           python scripts/ru_check.py prepare --size 8 --request "$RUNNER_TEMP/tgu-ru-smoke-request.json"
-          curl --silent --show-error --fail-with-body --max-time 90 --connect-timeout 10 --request POST --header "Authorization: Api-Key $TGU_RU_FUNCTION_API_KEY" --header "Content-Type: application/json" --data-binary @"$RUNNER_TEMP/tgu-ru-smoke-request.json" --output "$RUNNER_TEMP/tgu-ru-smoke-response.json" "$TGU_RU_FUNCTION_URL"
+          curl --silent --show-error --fail-with-body --retry 2 --retry-all-errors --retry-delay 3 --max-time 120 --connect-timeout 25 --request POST --header "Authorization: Api-Key $TGU_RU_FUNCTION_API_KEY" --header "Content-Type: application/json" --data-binary @"$RUNNER_TEMP/tgu-ru-smoke-request.json" --output "$RUNNER_TEMP/tgu-ru-smoke-response.json" "$TGU_RU_FUNCTION_URL"
           python scripts/ru_check.py merge --request "$RUNNER_TEMP/tgu-ru-smoke-request.json" --response "$RUNNER_TEMP/tgu-ru-smoke-response.json"
       - uses: actions/upload-artifact@v4
         with:
