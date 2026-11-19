@@ -22,7 +22,7 @@ from urllib.request import Request, urlopen
 USER_AGENT = "RNMDMusicDirectoryPrototype/0.1 (+https://github.com/sergeyrenamed-coder/TGU-Proxy-Directory)"
 OPENVERSE_API = "https://api.openverse.org/v1/audio/"
 JAMENDO_API = "https://api.jamendo.com/v3.0/tracks/"
-ALLOWED_AUDIO_FORMATS = {"mp3", "ogg", "flac", "wav", "m4a", "opus"}
+ALLOWED_AUDIO_FORMATS = {"mp3", "mp31", "mp32", "ogg", "flac", "wav", "m4a", "opus"}
 MAX_RESULTS = 30
 
 

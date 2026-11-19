@@ -26,6 +26,7 @@ class TestMusicDirectory(unittest.TestCase):
         self.assertEqual(track["id"], "openverse:abc")
         self.assertEqual(track["language"], "unknown")
         self.assertEqual(track["license"], "by-sa")
+        self.assertIsNotNone(md.normalize_openverse({**payload, "filetype": "mp32"}))
         self.assertFalse(track["stream_verified"])
         self.assertFalse(track["rights_reviewed"])
         self.assertFalse(track["network_ru_verified"])
