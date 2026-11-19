@@ -28,7 +28,7 @@ jobs:
         continue-on-error: true
         run: |
           python scripts/music_directory.py \
-            --query "русская музыка" --query "indie pop" \
+            --query "русская музыка" --query "Москва" --query "русский рок" --query "Russian folk" --query "indie pop" \
             --require-results --output music-preview.json
       - name: Upload unverified preview metadata
         if: always()
