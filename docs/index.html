@@ -68,13 +68,14 @@
       <div class="section-top"><span class="section-number">03 / NETWORK POOL</span><h2 id="pool-head">Proxy Endpoints</h2><a class="under-link" href="./data/proxies.json" target="_blank" rel="noopener noreferrer">RAW JSON ↗</a></div>
       <div class="toolbar">
         <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Адрес, страна, источник..." autocomplete="off" aria-label="Поиск прокси"></label>
-        <div class="chips" role="group" aria-label="Протокол">
+        <div id="proxy-filters" class="chips" role="group" aria-label="Протокол">
           <button data-filter="all" class="chip active" type="button">ВСЕ</button>
           <button data-filter="MTProto" class="chip" type="button">MTProto</button>
           <button data-filter="SOCKS5" class="chip" type="button">SOCKS5</button>
           <button id="ru-only" class="chip special" type="button" aria-pressed="false">RU VERIFIED</button>
         </div>
       </div>
+      <div id="proxy-results">
       <div class="table-area">
         <table>
           <thead><tr><th>ENDPOINT</th><th>PROTOCOL</th><th>REGION</th><th>GLOBAL RTT</th><th>RU STATUS</th><th></th></tr></thead>
@@ -82,6 +83,32 @@
         </table>
       </div>
       <div class="table-footer"><span id="visible-count">—</span><span>Проверяйте доступность непосредственно на своём устройстве.</span></div>
+      </div>
+      <section id="music-directory" class="music-directory" aria-label="RNMD Music Directory" hidden>
+        <div class="music-directory-head">
+          <div>
+            <span class="section-number">RNMD MUSIC / EXPERIMENTAL</span>
+            <h3>Music Directory<span class="music-dot">.</span></h3>
+            <p>Отдельный индекс музыкальных источников. Прокси, их статистика и автоподбор не затрагиваются.</p>
+          </div>
+          <span class="music-live">◌ PILOT / НЕ ПУБЛИЧНЫЙ РЕЛИЗ</span>
+        </div>
+        <div class="music-tool-row">
+          <label class="search music-search"><span>⌕</span><input id="music-search" type="search" placeholder="Поиск по источникам и трекам..." autocomplete="off" aria-label="Поиск в музыкальной директории"></label>
+          <button id="music-reload" type="button" class="chip">ОБНОВИТЬ</button>
+        </div>
+        <div class="music-summary"><span id="music-count">ИСТОЧНИКИ —</span><span id="music-tracks-count">ТРЕКИ —</span></div>
+        <div id="music-status" class="music-notice" role="status">Загрузка пробного каталога…</div>
+        <div id="music-provider-grid" class="source-grid music-providers"></div>
+        <div class="music-catalog-title"><h4>Индекс треков</h4>
+          <a class="under-link" href="./data/music/tracks.json" target="_blank" rel="noopener noreferrer">MUSIC JSON ↗</a></div>
+        <div id="music-track-list" class="music-tracks"><div class="empty-panel">В пилотном индексе пока нет опубликованных треков.</div></div>
+        <p class="music-disclaimer">Наличие записи в открытом каталоге не подтверждает права на неё. Проверка сети из РФ и прав на воспроизведение — отдельные этапы.</p>
+        <div class="music-links">
+          <a class="under-link" href="./data/music/providers.json" target="_blank" rel="noopener noreferrer">ИСТОЧНИКИ / JSON ↗</a>
+          <a class="under-link" href="./data/music/tracks.json" target="_blank" rel="noopener noreferrer">ТРЕКИ / JSON ↗</a>
+        </div>
+      </section>
     </section>
     <section id="sources" class="section-block" aria-labelledby="sources-head">
       <div class="section-top"><span class="section-number">04 / PIPELINE</span><h2 id="sources-head">Источники данных</h2><span class="section-aside">AUTOMATED COLLECTOR</span></div>

@@ -112,6 +112,97 @@
         (source.error ? '<p class="source-error">' + safe(source.error) + '</p>' : '') + '</article>';
     }).join("") : '<div class="source-card">Пока нет сведений об источниках.</div>';
   }
+
+  // RNMD Music is a separate experimental namespace. The proxy collector,
+  // metrics and filters are intentionally unchanged.
+  const musicState = {
+    providers: [], tracks: [], query: "", loaded: false, loading: false, error: null
+  };
+  const musicMode = () => state.query.trim().toLowerCase() === "music";
+  const trustedLink = value => {
+    try {
+      const url = new URL(String(value || ""));
+      return url.protocol === "https:" ? url.href : "";
+    } catch (_) { return ""; }
+  };
+  const musicLabel = status => ({
+    candidate: "◌ НА ПРОВЕРКЕ",
+    needs_client_id: "◌ НУЖЕН CLIENT ID",
+    integration_pending: "◌ ИССЛЕДОВАНИЕ API",
+    verified: "● ПРОВЕРЕНО"
+  }[status] || "◌ НЕ ПОДКЛЮЧЁН");
+  function renderMusic() {
+    const term = musicState.query.trim().toLowerCase();
+    const providers = musicState.providers.filter(p =>
+      [p.name,p.content,p.id,...(p.languages || [])].join(" ").toLowerCase().includes(term));
+    const tracks = musicState.tracks.filter(t =>
+      [t.title,t.artist,t.provider,t.language].join(" ").toLowerCase().includes(term));
+    $("music-count").textContent = "ИСТОЧНИКИ " + number(musicState.providers.length);
+    $("music-tracks-count").textContent = "ИНДЕКС " + number(musicState.tracks.length) + " ТРЕКОВ";
+    $("music-status").textContent = musicState.error
+      ? "Не удалось загрузить музыкальный каталог: " + musicState.error
+      : musicState.loading
+        ? "Загрузка музыкальной директории…"
+        : "Пилотный режим. Статусы не означают доступность без VPN и не гарантируют права на запись.";
+    $("music-provider-grid").innerHTML = providers.length ? providers.map(p => {
+      const docs = trustedLink(p.api_docs);
+      return '<article class="source-card music-provider-card">' +
+        '<div class="source-title"><span>' + safe(p.name) + '</span>' +
+        '<span class="source-status ' + (p.status === "verified" ? "" : "error") +
+        '">' + safe(musicLabel(p.status)) + '</span></div>' +
+        '<p>' + safe(p.content || "") + '</p>' +
+        '<div class="music-provider-meta">RU ACCESS: ' + (p.network_ru_verified ? "CHECKED" : "NOT CHECKED") +
+        ' · STREAM: ' + (p.streaming_verified ? "CHECKED" : "NOT CHECKED") + '</div>' +
+        (docs ? '<a class="under-link" href="' + safe(docs) +
+          '" target="_blank" rel="noopener noreferrer">API DOCS ↗</a>' : '') +
+        '</article>';
+    }).join("") : '<div class="empty-panel">Нет источников по запросу.</div>';
+    $("music-track-list").innerHTML = tracks.length ? tracks.slice(0,80).map(t => {
+      const source = trustedLink(t.source_page);
+      return '<article class="music-track"><div><strong>' + safe(t.title) + '</strong>' +
+        '<span>' + safe(t.artist || "Неизвестный исполнитель") + ' · ' +
+        safe(t.provider || "—") + '</span></div>' +
+        '<span class="music-license">' + safe(t.license || "ЛИЦЕНЗИЯ НЕ УКАЗАНА") + '</span>' +
+        (source ? '<a class="under-link" target="_blank" rel="noopener noreferrer" href="' +
+          safe(source) + '">ИСТОЧНИК ↗</a>' : '') + '</article>';
+    }).join("") : '<div class="empty-panel">Публичный музыкальный индекс пока пуст. ' +
+      'Источники готовы к экспериментальной проверке, но мы не выдаём тестовые данные за настоящие треки.</div>';
+  }
+  async function loadMusic(force = false) {
+    if (musicState.loading || (musicState.loaded && !force)) return;
+    musicState.loading = true;
+    musicState.error = null;
+    renderMusic();
+    try {
+      const stamp = "?v=" + Date.now();
+      const [p,t] = await Promise.all([
+        fetch("./data/music/providers.json"+stamp, { cache:"no-store" }),
+        fetch("./data/music/tracks.json"+stamp, { cache:"no-store" })
+      ]);
+      if (!p.ok || !t.ok) throw new Error("HTTP " + (p.ok ? t.status : p.status));
+      const providers = await p.json();
+      const tracks = await t.json();
+      if (!Array.isArray(providers.providers) || !Array.isArray(tracks.tracks))
+        throw new Error("Неверная структура JSON");
+      musicState.providers = providers.providers;
+      musicState.tracks = tracks.tracks;
+      musicState.loaded = true;
+    } catch (error) {
+      musicState.error = error.message || "Неизвестная ошибка";
+    } finally {
+      musicState.loading = false;
+      renderMusic();
+    }
+  }
+  function syncDirectoryMode() {
+    const active = musicMode();
+    $("proxy-filters").hidden = active;
+    $("proxy-results").hidden = active;
+    $("music-directory").hidden = !active;
+    $("pool-head").textContent = active ? "RNMD Music Directory" : "Proxy Endpoints";
+    if (active) loadMusic();
+    else renderProxies();
+  }
   async function load() {
     try {
       const stamp = "?v=" + Date.now();
@@ -143,7 +234,15 @@
       $("ru-state").textContent = "○ НЕТ ДАННЫХ";
     }
   }
-  $("search").addEventListener("input", e => { state.query = e.target.value || ""; renderProxies(); });
+  $("search").addEventListener("input", e => {
+    state.query = e.target.value || "";
+    syncDirectoryMode();
+  });
+  $("music-search").addEventListener("input", e => {
+    musicState.query = e.target.value || "";
+    renderMusic();
+  });
+  $("music-reload").addEventListener("click", () => loadMusic(true));
   document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
     document.querySelectorAll("[data-filter]").forEach(x => x.classList.remove("active"));
     button.classList.add("active");

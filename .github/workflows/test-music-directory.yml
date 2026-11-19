@@ -1,0 +1,39 @@
+name: RNMD Music Directory — experimental checks
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'data/music/**'
+      - 'scripts/music_directory.py'
+      - 'tests/test_music_directory.py'
+      - '.github/workflows/test-music-directory.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate JavaScript
+        run: node --check docs/assets/app.js
+      - name: Validate directory schema and collector
+        run: python -m unittest tests.test_music_directory -v
+      - name: Openverse live discovery smoke test (non-blocking)
+        id: smoke
+        continue-on-error: true
+        run: |
+          python scripts/music_directory.py \
+            --query "русская музыка" --query "indie pop" \
+            --require-results --output music-preview.json
+      - name: Upload unverified preview metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rnmd-music-directory-candidates
+          path: music-preview.json
+          if-no-files-found: warn

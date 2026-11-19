@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "directory": "rnmd-music",
+  "experimental": true,
+  "note": "Метаданные источников. Никаких гарантий доступности, лицензий или прав на записи. Треки включаются после отдельной проверки.",
+  "providers": [
+    {
+      "id": "openverse",
+      "name": "Openverse",
+      "status": "candidate",
+      "enabled": true,
+      "requires_key": false,
+      "content": "Музыка с лицензиями Creative Commons / CC0 из нескольких каталогов",
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "capabilities": [
+        "search",
+        "metadata",
+        "source_url"
+      ],
+      "api_docs": "https://api.openverse.org/v1/",
+      "network_ru_verified": false,
+      "streaming_verified": false,
+      "checked_at": null,
+      "legal": "Openverse не проверяет права на каждую запись; сохраняем лицензию и ссылку на оригинал, не считаем результат автоматически разрешённым для публичного стриминга."
+    },
+    {
+      "id": "jamendo",
+      "name": "Jamendo",
+      "status": "needs_client_id",
+      "enabled": false,
+      "requires_key": true,
+      "content": "Независимые исполнители, официальные аудиопотоки",
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "capabilities": [
+        "search",
+        "metadata",
+        "stream_if_authorized"
+      ],
+      "api_docs": "https://developer.jamendo.com/v3.0/tracks",
+      "network_ru_verified": false,
+      "streaming_verified": false,
+      "checked_at": null,
+      "legal": "Для API обязателен зарегистрированный client_id; применение каждой лицензии и условия коммерческого использования проверяем отдельно."
+    },
+    {
+      "id": "promodj",
+      "name": "PromoDJ",
+      "status": "integration_pending",
+      "enabled": false,
+      "requires_key": null,
+      "content": "Российские исполнители, электронная музыка, ремиксы и сеты",
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "capabilities": [
+        "metadata_research"
+      ],
+      "api_docs": "https://promodj.com/api/",
+      "network_ru_verified": false,
+      "streaming_verified": false,
+      "checked_at": null,
+      "legal": "Нет подтверждённого API для автоматического забора и воспроизведения треков; не используем парсинг страниц и извлечение скрытых URL."
+    }
+  ]
+}

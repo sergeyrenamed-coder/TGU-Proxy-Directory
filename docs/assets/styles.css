@@ -12,3 +12,36 @@
 @media(max-width:1050px){.metric-grid{grid-template-columns:repeat(2,1fr)}.source-grid{grid-template-columns:repeat(2,1fr)}.ru-layout{grid-template-columns:1fr 1fr}.site-header nav{gap:15px}.section-number{flex-basis:125px}}
 @media(max-width:750px){.shell{width:min(100% - 36px,1240px)}.site-header{height:66px}.site-header nav{display:none}.hero{padding:80px 0 55px}.hero h1{font-size:clamp(62px,13.5vw,100px);margin-bottom:36px}.hero-bottom{align-items:flex-start;flex-direction:column}.hero-health{align-items:flex-start}.hero-edition{display:none}.stats-section,.section-block{padding-top:60px}.section-top{gap:10px;flex-wrap:wrap}.section-top h2{font-size:23px;flex-basis:calc(100% - 135px)}.section-aside,.under-link{margin-left:auto}.ru-layout{grid-template-columns:1fr}.ru-text{border-right:0;border-bottom:1px solid var(--line);padding:26px}.ru-results{padding:20px 26px}.ru-text h3{font-size:39px}.toolbar{flex-direction:column;align-items:stretch}.search{max-width:none}.source-grid{grid-template-columns:1fr}.api-panel{align-items:flex-start;flex-direction:column;margin-top:65px}.api-actions{align-items:flex-start}footer{flex-direction:column}}
 @media(max-width:430px){.metric-grid{gap:7px}.metric{padding:17px;min-height:145px}.metric strong{font-size:40px}.metric-caption{font-size:9px}.hero h1{font-size:62px}.ru-mini-stats{grid-template-columns:repeat(2,1fr)}.section-top h2{font-size:20px}.header-grid{gap:10px}.github-top{padding:9px}.logo{font-size:11px}.section-eyebrow{font-size:8px}}
+
+/* RNMD Music Directory: a hidden visual namespace activated by the exact search "music". */
+[hidden]{display:none!important}
+.music-directory{border:1px solid #363636;border-radius:12px;padding:27px;background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.015));color:#f3f3f3}
+.music-directory-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}
+.music-directory-head h3{font-size:clamp(30px,5vw,52px);line-height:1.15;letter-spacing:-.055em;margin:12px 0}
+.music-directory-head p{color:#9c9c9c;max-width:640px;margin:0;font-size:13px;line-height:1.8}
+.music-dot{color:#999}
+.music-live{font:10px ui-monospace,monospace;color:#aeaeae;border:1px solid #3e3e3e;border-radius:4px;padding:9px;white-space:nowrap}
+.music-tool-row{display:flex;gap:10px;align-items:center;margin:29px 0 15px}
+.music-search{max-width:none}
+.music-summary{display:flex;gap:26px;color:#8e8e8e;font:10px ui-monospace,monospace;letter-spacing:.05em;margin:8px 0 14px}
+.music-notice{padding:14px 17px;background:rgba(255,255,255,.045);border:1px solid #2c2c2c;color:#b4b4b4;font-size:12px;border-radius:8px;margin-bottom:19px}
+.music-providers{margin-top:4px;margin-bottom:28px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.music-provider-card{border-radius:10px;background:rgba(255,255,255,.045);padding:19px;min-width:0}
+.music-provider-card p{color:#afafaf;font-size:12px;line-height:1.7;min-height:64px}
+.music-provider-card .source-title{display:flex;gap:12px;align-items:start;flex-wrap:wrap}
+.music-provider-meta{color:#8f8f8f;font:10px ui-monospace,monospace;line-height:1.8;margin-bottom:15px}
+.music-provider-card .under-link{font-size:10px}
+.music-catalog-title{display:flex;align-items:center;justify-content:space-between;gap:15px;border-top:1px solid #333;padding-top:23px;margin-top:15px}
+.music-catalog-title h4{font-size:21px;letter-spacing:-.03em;margin:0 0 18px}
+.music-tracks{border:1px solid #333;border-radius:8px;overflow:hidden}
+.music-track{padding:14px 16px;display:flex;gap:16px;align-items:center;border-bottom:1px solid #292929}
+.music-track:last-child{border-bottom:none}
+.music-track>div{flex:1;min-width:0}
+.music-track strong,.music-track span{display:block;overflow:hidden;text-overflow:ellipsis}
+.music-track strong{font-size:13px}
+.music-track span{color:#999;font-size:11px}
+.music-track .music-license{font:10px ui-monospace,monospace;color:#bbb}
+.music-track .under-link{white-space:nowrap}
+.music-disclaimer{color:#8b8b8b;font-size:11px;line-height:1.8;max-width:790px}
+.music-links{display:flex;gap:22px;flex-wrap:wrap;margin-top:18px}
+@media(max-width:750px){.music-directory{padding:17px}.music-directory-head{flex-direction:column}.music-live{white-space:normal}.music-tool-row{align-items:stretch}.music-track{flex-wrap:wrap}.music-track .music-license{flex-basis:100%}}
