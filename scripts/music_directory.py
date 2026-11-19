@@ -134,8 +134,18 @@ def collect_openverse(query: str, limit: int = 15) -> list[dict[str, Any]]:
     items = payload.get("results") or []
     if not isinstance(items, list):
         return []
-    return [track for x in items if isinstance(x, dict)
-            if (track := normalize_openverse(x)) is not None]
+    normalized = [track for x in items if isinstance(x, dict)
+                  if (track := normalize_openverse(x)) is not None]
+    # Diagnose source schema without printing private or audio URLs.
+    sample = [{
+        "category": x.get("category"), "filetype": x.get("filetype"),
+        "license": x.get("license"),
+        "source_scheme": urlsplit(str(x.get("foreign_landing_url") or "")).scheme,
+        "audio_scheme": urlsplit(str(x.get("url") or "")).scheme
+    } for x in items[:3] if isinstance(x, dict)]
+    print(f"Openverse [{query}]: raw={len(items)}, accepted={len(normalized)}, "
+          f"result_count={payload.get('result_count')}, examples={sample}")
+    return normalized
 
 
 def collect_jamendo(query: str, client_id: str, limit: int = 15) -> list[dict[str, Any]]:
