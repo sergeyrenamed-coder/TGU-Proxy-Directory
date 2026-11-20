@@ -50,7 +50,7 @@ jobs:
           path: music-checked.json
           if-no-files-found: warn
       - name: Publish stream-checked metadata to experimental branch
-        if: \${{ github.event_name == 'pull_request' && github.head_ref == 'experiment/rnmd-music-directory' && github.event.pull_request.head.repo.full_name == github.repository && steps.streams.outcome == 'success' }}
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'experiment/rnmd-music-directory' && github.event.pull_request.head.repo.full_name == github.repository && steps.streams.outcome == 'success' }}
         run: |
           python - <<'PY'
           import json
