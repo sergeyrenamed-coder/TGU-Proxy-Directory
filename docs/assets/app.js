@@ -181,7 +181,7 @@
         (license ? '<a class="under-link" href="' + safe(license) +
           '" target="_blank" rel="noopener noreferrer">ЛИЦЕНЗИЯ ↗</a>' : '') +
         (source ? '<a class="under-link" target="_blank" rel="noopener noreferrer" href="' +
-          safe(source) + '">ОРИГИНАЛ ↗</a>' : '') +
+          safe(source) + '">НА JAMENDO ↗</a>' : '') +
         (playable ? '<button class="music-play" type="button" data-music-id="' +
           safe(t.id) + '">СЛУШАТЬ ▶</button>' : '') + '</article>';
     }).join("") : '<div class="empty-panel">Публичный музыкальный индекс пока пуст. ' +
@@ -278,7 +278,7 @@
     audio.src = url;
     $("music-playing-title").textContent = track.title;
     $("music-playing-attribution").textContent = track.artist + " · CC " +
-      track.license + " · " + (track.provider || "Openverse");
+      track.license + " · " + (track.provider || "Openverse") + " · Jamendo";
     $("music-playback-status").textContent =
       "Поток проверен с GitHub Actions. Доступность из РФ не подтверждена; права независимо не проверены.";
     $("music-player-panel").hidden = false;
