@@ -15,9 +15,11 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -47,6 +49,40 @@ jobs:
           name: rnmd-music-stream-checks
           path: music-checked.json
           if-no-files-found: warn
+      - name: Publish stream-checked metadata to experimental branch
+        if: \${{ github.event_name == 'pull_request' && github.head_ref == 'experiment/rnmd-music-directory' && github.event.pull_request.head.repo.full_name == github.repository && steps.streams.outcome == 'success' }}
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          checked = json.loads(Path('music-checked.json').read_text(encoding='utf-8'))
+          if not checked.get('track_count'):
+              raise SystemExit('No verified streams: refusing to publish an empty catalog')
+          index = {
+              key: checked[key] for key in (
+                  'schema_version', 'directory', 'generated_at',
+                  'experimental', 'source_count', 'track_count', 'metadata_candidates',
+                  'notes', 'verification', 'tracks'
+              )
+          }
+          # A successful HTTP probe DOES NOT set rights_reviewed or RU verified.
+          if not all(t.get('stream_verified') is True and
+                     t.get('rights_reviewed') is False and
+                     t.get('network_ru_verified') is False
+                     for t in index['tracks']):
+              raise SystemExit('Unverified track flags do not match pilot policy')
+          contents = json.dumps(index, ensure_ascii=False, indent=2) + '\n'
+          for path in ['data/music/tracks.json', 'docs/data/music/tracks.json']:
+              Path(path).write_text(contents, encoding='utf-8')
+          print('Published checked metadata:', index['track_count'])
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/music/tracks.json docs/data/music/tracks.json
+          if ! git diff --cached --quiet; then
+            git commit -m "data(music): publish reachability-checked open-license metadata preview"
+            git push origin HEAD:refs/heads/experiment/rnmd-music-directory
+          fi
       - name: Upload unverified preview metadata
         if: always()
         uses: actions/upload-artifact@v4
