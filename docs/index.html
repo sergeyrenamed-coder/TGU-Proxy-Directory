@@ -103,6 +103,13 @@
         <div class="music-catalog-title"><h4>Индекс треков</h4>
           <a class="under-link" href="./data/music/tracks.json" target="_blank" rel="noopener noreferrer">MUSIC JSON ↗</a></div>
         <div id="music-track-list" class="music-tracks"><div class="empty-panel">В пилотном индексе пока нет опубликованных треков.</div></div>
+        <div id="music-player-panel" class="music-player-panel" hidden>
+          <div class="music-playing-head"><span>RNMD MUSIC / PREVIEW PLAYER</span><button id="music-player-close" type="button" class="chip">ЗАКРЫТЬ</button></div>
+          <strong id="music-playing-title">—</strong>
+          <span id="music-playing-attribution">Автор · источник · лицензия</span>
+          <audio id="music-player" controls preload="none" aria-label="Прослушивание музыкальной записи"></audio>
+          <div id="music-playback-status" role="status" class="music-playback-status">Нажми воспроизведение для проверки доступности.</div>
+        </div>
         <p class="music-disclaimer">Наличие записи в открытом каталоге не подтверждает права на неё. Проверка сети из РФ и прав на воспроизведение — отдельные этапы.</p>
         <div class="music-links">
           <a class="under-link" href="./data/music/providers.json" target="_blank" rel="noopener noreferrer">ИСТОЧНИКИ / JSON ↗</a>

@@ -84,6 +84,8 @@ class TestMusicDirectory(unittest.TestCase):
         self.assertIn('id="proxy-results"', html)
         self.assertIn('=== "music"', javascript)
         self.assertIn('$("music-directory").hidden = !active', javascript)
+        self.assertIn('id="music-player"', html)
+        self.assertIn('data-music-id', javascript)
 
 
 if __name__ == "__main__":

@@ -5,6 +5,8 @@ on:
       - 'docs/**'
       - 'data/music/**'
       - 'scripts/music_directory.py'
+      - 'scripts/music_stream_check.py'
+      - 'tests/test_music_stream_check.py'
       - 'tests/test_music_directory.py'
       - '.github/workflows/test-music-directory.yml'
   workflow_dispatch:
@@ -22,7 +24,7 @@ jobs:
       - name: Validate JavaScript
         run: node --check docs/assets/app.js
       - name: Validate directory schema and collector
-        run: python -m unittest tests.test_music_directory -v
+        run: python -m unittest tests.test_music_directory tests.test_music_stream_check -v
       - name: Openverse live discovery smoke test (non-blocking)
         id: smoke
         continue-on-error: true
@@ -30,6 +32,21 @@ jobs:
           python scripts/music_directory.py \
             --query "русская музыка" --query "Москва" --query "русский рок" --query "Russian folk" --query "indie pop" \
             --require-results --output music-preview.json
+      - name: Check short audio samples from public candidates (non-blocking)
+        id: streams
+        continue-on-error: true
+        run: |
+          if test -f music-preview.json; then
+            python scripts/music_stream_check.py --input music-preview.json \
+              --output music-checked.json --require-results
+          fi
+      - name: Upload stream-check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rnmd-music-stream-checks
+          path: music-checked.json
+          if-no-files-found: warn
       - name: Upload unverified preview metadata
         if: always()
         uses: actions/upload-artifact@v4

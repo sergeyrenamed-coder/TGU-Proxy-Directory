@@ -125,6 +125,23 @@
       return url.protocol === "https:" ? url.href : "";
     } catch (_) { return ""; }
   };
+  const playableTrack = track => {
+    if (!track || track.stream_verified !== true || track.rights_reviewed === true) {
+      // Independently reviewed licenses may be supported later. A Stream check
+      // never implies the source license was independently audited.
+      if (!track || track.stream_verified !== true) return "";
+    }
+    if (!["by", "by-sa", "by-nd", "by-nc", "by-nc-sa", "by-nc-nd", "cc0", "pdm"]
+        .includes(String(track.license || "").toLowerCase())) return "";
+    try {
+      const license = new URL(String(track.license_url || ""));
+      if (license.protocol !== "https:" || license.hostname !== "creativecommons.org") return "";
+      const media = new URL(String(track.audio_url || ""));
+      const host = media.hostname.toLowerCase();
+      if (media.protocol !== "https:" || !(host === "jamendo.com" || host.endsWith(".jamendo.com"))) return "";
+      return media.href;
+    } catch (_) { return ""; }
+  };
   const musicLabel = status => ({
     candidate: "◌ НА ПРОВЕРКЕ",
     needs_client_id: "◌ НУЖЕН CLIENT ID",
@@ -159,12 +176,18 @@
     }).join("") : '<div class="empty-panel">Нет источников по запросу.</div>';
     $("music-track-list").innerHTML = tracks.length ? tracks.slice(0,80).map(t => {
       const source = trustedLink(t.source_page);
+      const playable = playableTrack(t);
+      const license = trustedLink(t.license_url);
       return '<article class="music-track"><div><strong>' + safe(t.title) + '</strong>' +
         '<span>' + safe(t.artist || "Неизвестный исполнитель") + ' · ' +
         safe(t.provider || "—") + '</span></div>' +
-        '<span class="music-license">' + safe(t.license || "ЛИЦЕНЗИЯ НЕ УКАЗАНА") + '</span>' +
+        '<span class="music-license">CC ' + safe(t.license || "НЕИЗВЕСТНО") + '</span>' +
+        (license ? '<a class="under-link" href="' + safe(license) +
+          '" target="_blank" rel="noopener noreferrer">ЛИЦЕНЗИЯ ↗</a>' : '') +
         (source ? '<a class="under-link" target="_blank" rel="noopener noreferrer" href="' +
-          safe(source) + '">ИСТОЧНИК ↗</a>' : '') + '</article>';
+          safe(source) + '">ОРИГИНАЛ ↗</a>' : '') +
+        (playable ? '<button class="music-play" type="button" data-music-id="' +
+          safe(t.id) + '">СЛУШАТЬ ▶</button>' : '') + '</article>';
     }).join("") : '<div class="empty-panel">Публичный музыкальный индекс пока пуст. ' +
       'Источники готовы к экспериментальной проверке, но мы не выдаём тестовые данные за настоящие треки.</div>';
   }
@@ -196,6 +219,11 @@
   }
   function syncDirectoryMode() {
     const active = musicMode();
+    if (!active) {
+      $("music-player").pause();
+      $("music-player").removeAttribute("src");
+      $("music-player-panel").hidden = true;
+    }
     $("proxy-filters").hidden = active;
     $("proxy-results").hidden = active;
     $("music-directory").hidden = !active;
@@ -243,6 +271,36 @@
     renderMusic();
   });
   $("music-reload").addEventListener("click", () => loadMusic(true));
+  $("music-track-list").addEventListener("click", event => {
+    const button = event.target.closest("[data-music-id]");
+    if (!button) return;
+    const track = musicState.tracks.find(item => item.id === button.dataset.musicId);
+    const url = playableTrack(track);
+    if (!url) return;
+    const audio = $("music-player");
+    audio.pause();
+    audio.src = url;
+    $("music-playing-title").textContent = track.title;
+    $("music-playing-attribution").textContent = track.artist + " · CC " +
+      track.license + " · " + (track.provider || "Openverse");
+    $("music-playback-status").textContent =
+      "Поток проверен с GitHub Actions. Доступность из РФ не подтверждена; права независимо не проверены.";
+    $("music-player-panel").hidden = false;
+    audio.load();
+    audio.play().catch(() => {
+      $("music-playback-status").textContent = "Не удалось начать воспроизведение. Попробуй запустить вручную или открыть оригинал.";
+    });
+  });
+  $("music-player").addEventListener("error", () => {
+    $("music-playback-status").textContent =
+      "Аудиопоток недоступен с этого устройства. Открой оригинал записи или попробуй позже.";
+  });
+  $("music-player-close").addEventListener("click", () => {
+    const audio = $("music-player");
+    audio.pause();
+    audio.removeAttribute("src");
+    $("music-player-panel").hidden = true;
+  });
   document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
     document.querySelectorAll("[data-filter]").forEach(x => x.classList.remove("active"));
     button.classList.add("active");
