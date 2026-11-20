@@ -76,6 +76,15 @@ class TestMusicDirectory(unittest.TestCase):
         providers = json.loads((root / "docs/data/music/providers.json").read_text(encoding="utf-8"))
         self.assertEqual({p["id"] for p in providers["providers"]},
                          {"openverse", "jamendo", "promodj"})
+        published = json.loads((root / "docs/data/music/tracks.json").read_text(encoding="utf-8"))
+        self.assertEqual(published["track_count"], len(published["tracks"]))
+        for track in published["tracks"]:
+            self.assertTrue(track["stream_verified"])
+            self.assertFalse(track["rights_reviewed"])
+            self.assertFalse(track["network_ru_verified"])
+            self.assertTrue(track["source_page"].startswith("https://www.jamendo.com/track/"))
+            self.assertTrue(track["audio_url"].startswith("https://prod-1.storage.jamendo.com/"))
+            self.assertTrue(track["license_url"].startswith("https://creativecommons.org/"))
         self.assertFalse(next(p for p in providers["providers"]
                               if p["id"] == "promodj")["enabled"])
         html = (root / "docs/index.html").read_text(encoding="utf-8")

@@ -126,11 +126,7 @@
     } catch (_) { return ""; }
   };
   const playableTrack = track => {
-    if (!track || track.stream_verified !== true || track.rights_reviewed === true) {
-      // Independently reviewed licenses may be supported later. A Stream check
-      // never implies the source license was independently audited.
-      if (!track || track.stream_verified !== true) return "";
-    }
+    if (!track || track.stream_verified !== true) return "";
     if (!["by", "by-sa", "by-nd", "by-nc", "by-nc-sa", "by-nc-nd", "cc0", "pdm"]
         .includes(String(track.license || "").toLowerCase())) return "";
     try {
