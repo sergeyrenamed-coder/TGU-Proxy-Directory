@@ -2,16 +2,16 @@
   "schema_version": 1,
   "service": "TGU RU Checker",
   "checker": "yandex_cloud_ru",
-  "generated_at": "2026-11-21T16:55:25Z",
+  "generated_at": "2026-11-21T22:01:38Z",
   "status": "active",
-  "cursor": 316,
+  "cursor": 340,
   "ttl_hours": 24,
   "totals": {
-    "catalog": 664,
-    "checked": 92,
-    "working": 49,
-    "failed": 43,
-    "coverage_percent": 13.9
+    "catalog": 805,
+    "checked": 101,
+    "working": 61,
+    "failed": 40,
+    "coverage_percent": 12.5
   },
   "checks": [
     {
@@ -47,14 +47,6 @@
       "checked_at": "2026-11-21T16:55:17Z"
     },
     {
-      "proxy_id": "072b09b44b464f7a1b52",
-      "type": "MTProto",
-      "status": "failed",
-      "latency_ms": null,
-      "failure_code": "timeout",
-      "checked_at": "2026-11-20T20:55:45Z"
-    },
-    {
       "proxy_id": "0b659ebad0ddb2b3fdd0",
       "type": "MTProto",
       "status": "failed",
@@ -82,9 +74,33 @@
       "proxy_id": "143632502e2bc970f7b2",
       "type": "MTProto",
       "status": "working",
-      "latency_ms": 162,
+      "latency_ms": 3637,
       "failure_code": "none",
-      "checked_at": "2026-11-21T01:58:33Z"
+      "checked_at": "2026-11-21T22:01:20Z"
+    },
+    {
+      "proxy_id": "15f42bc2d7b01fe00084",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 3665,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:24Z"
+    },
+    {
+      "proxy_id": "16756b6f89871626b547",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 133,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:21Z"
+    },
+    {
+      "proxy_id": "168491c39f2a00eaea10",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 150,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:24Z"
     },
     {
       "proxy_id": "1b8ba166f197937a95cd",
@@ -111,20 +127,20 @@
       "checked_at": "2026-11-21T09:18:24Z"
     },
     {
-      "proxy_id": "219716538f484dee7d3b",
-      "type": "MTProto",
-      "status": "failed",
-      "latency_ms": null,
-      "failure_code": "timeout",
-      "checked_at": "2026-11-20T20:55:41Z"
-    },
-    {
       "proxy_id": "22f668af60bd7c80aebc",
       "type": "MTProto",
       "status": "failed",
       "latency_ms": null,
       "failure_code": "timeout",
       "checked_at": "2026-11-21T09:18:40Z"
+    },
+    {
+      "proxy_id": "275a35b6d06ea3804c86",
+      "type": "MTProto",
+      "status": "failed",
+      "latency_ms": null,
+      "failure_code": "timeout",
+      "checked_at": "2026-11-21T22:01:27Z"
     },
     {
       "proxy_id": "2c4b0ccdc483b6c43879",
@@ -151,6 +167,14 @@
       "checked_at": "2026-11-21T09:18:19Z"
     },
     {
+      "proxy_id": "31c5b98622aec2387377",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 173,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:21Z"
+    },
+    {
       "proxy_id": "321244505e8decc7f802",
       "type": "MTProto",
       "status": "working",
@@ -167,12 +191,12 @@
       "checked_at": "2026-11-21T16:55:13Z"
     },
     {
-      "proxy_id": "36e1ba729067965fe5ff",
+      "proxy_id": "3555b2d78a0a834c6964",
       "type": "MTProto",
-      "status": "failed",
-      "latency_ms": null,
-      "failure_code": "timeout",
-      "checked_at": "2026-11-20T20:55:41Z"
+      "status": "working",
+      "latency_ms": 173,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:20Z"
     },
     {
       "proxy_id": "3edad772d7826ce95e26",
@@ -181,6 +205,30 @@
       "latency_ms": null,
       "failure_code": "timeout",
       "checked_at": "2026-11-21T01:58:36Z"
+    },
+    {
+      "proxy_id": "417b3f48cda89680da8a",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 154,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:24Z"
+    },
+    {
+      "proxy_id": "4523ea98a752c0379aa3",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 110,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:24Z"
+    },
+    {
+      "proxy_id": "4566d1daadb2e1be44b2",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 112,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:17Z"
     },
     {
       "proxy_id": "469aa1321f57a134331d",
@@ -207,6 +255,14 @@
       "checked_at": "2026-11-21T09:18:09Z"
     },
     {
+      "proxy_id": "4a8123e87fc88cb6357b",
+      "type": "MTProto",
+      "status": "failed",
+      "latency_ms": null,
+      "failure_code": "timeout",
+      "checked_at": "2026-11-21T22:01:34Z"
+    },
+    {
       "proxy_id": "4c732aced9296ae2c113",
       "type": "MTProto",
       "status": "working",
@@ -221,14 +277,6 @@
       "latency_ms": null,
       "failure_code": "timeout",
       "checked_at": "2026-11-21T01:58:37Z"
-    },
-    {
-      "proxy_id": "5327fff9ace8fabcaa29",
-      "type": "MTProto",
-      "status": "failed",
-      "latency_ms": null,
-      "failure_code": "timeout",
-      "checked_at": "2026-11-20T20:55:41Z"
     },
     {
       "proxy_id": "53977ce0700b38807250",
@@ -274,9 +322,17 @@
       "proxy_id": "69917a293739bdbab440",
       "type": "MTProto",
       "status": "working",
-      "latency_ms": 3658,
+      "latency_ms": 7170,
       "failure_code": "none",
-      "checked_at": "2026-11-21T01:58:33Z"
+      "checked_at": "2026-11-21T22:01:24Z"
+    },
+    {
+      "proxy_id": "6ac87d130d6ccbdd51b2",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 7146,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:28Z"
     },
     {
       "proxy_id": "6c9f0b516b492e2720f8",
@@ -287,6 +343,14 @@
       "checked_at": "2026-11-21T09:18:33Z"
     },
     {
+      "proxy_id": "6f7e9f42145018284418",
+      "type": "MTProto",
+      "status": "failed",
+      "latency_ms": null,
+      "failure_code": "timeout",
+      "checked_at": "2026-11-21T22:01:24Z"
+    },
+    {
       "proxy_id": "704809184ca728c5fcc3",
       "type": "MTProto",
       "status": "failed",
@@ -295,12 +359,28 @@
       "checked_at": "2026-11-21T01:58:40Z"
     },
     {
+      "proxy_id": "7103b4aee973934cb14e",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 161,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:21Z"
+    },
+    {
+      "proxy_id": "71eb4961d0d57037d0b0",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 379,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:24Z"
+    },
+    {
       "proxy_id": "73859554da5e0a38daf9",
       "type": "MTProto",
       "status": "working",
-      "latency_ms": 3699,
+      "latency_ms": 154,
       "failure_code": "none",
-      "checked_at": "2026-11-21T01:58:33Z"
+      "checked_at": "2026-11-21T22:01:17Z"
     },
     {
       "proxy_id": "742b508c67c4efe71a4e",
@@ -375,14 +455,6 @@
       "checked_at": "2026-11-21T09:18:12Z"
     },
     {
-      "proxy_id": "7da47ac678b44a1c42c5",
-      "type": "MTProto",
-      "status": "failed",
-      "latency_ms": null,
-      "failure_code": "timeout",
-      "checked_at": "2026-11-20T20:55:41Z"
-    },
-    {
       "proxy_id": "84d538c87e8b8fa3a1cb",
       "type": "MTProto",
       "status": "working",
@@ -418,9 +490,9 @@
       "proxy_id": "893860aeeee8bb2eded0",
       "type": "MTProto",
       "status": "working",
-      "latency_ms": 3653,
+      "latency_ms": 3664,
       "failure_code": "none",
-      "checked_at": "2026-11-21T01:58:33Z"
+      "checked_at": "2026-11-21T22:01:20Z"
     },
     {
       "proxy_id": "89ec15b8062cc347b92e",
@@ -428,7 +500,7 @@
       "status": "failed",
       "latency_ms": null,
       "failure_code": "timeout",
-      "checked_at": "2026-11-21T01:58:37Z"
+      "checked_at": "2026-11-21T22:01:28Z"
     },
     {
       "proxy_id": "953f4562a944fe2e1cfb",
@@ -445,14 +517,6 @@
       "latency_ms": null,
       "failure_code": "timeout",
       "checked_at": "2026-11-21T01:58:33Z"
-    },
-    {
-      "proxy_id": "9e7ed27bf5e4ba5b275e",
-      "type": "MTProto",
-      "status": "failed",
-      "latency_ms": null,
-      "failure_code": "timeout",
-      "checked_at": "2026-11-20T20:55:41Z"
     },
     {
       "proxy_id": "a0479e985813b1d597ff",
@@ -479,20 +543,20 @@
       "checked_at": "2026-11-21T16:55:15Z"
     },
     {
+      "proxy_id": "aa560e8b90cc76deb657",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 3616,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:27Z"
+    },
+    {
       "proxy_id": "acd4414cd417733839d5",
       "type": "MTProto",
       "status": "working",
-      "latency_ms": 3697,
+      "latency_ms": 7183,
       "failure_code": "none",
-      "checked_at": "2026-11-21T01:58:33Z"
-    },
-    {
-      "proxy_id": "afb5c97703a0ee0436d5",
-      "type": "MTProto",
-      "status": "failed",
-      "latency_ms": null,
-      "failure_code": "timeout",
-      "checked_at": "2026-11-20T20:55:41Z"
+      "checked_at": "2026-11-21T22:01:24Z"
     },
     {
       "proxy_id": "b15cfaaa82d13c5941fc",
@@ -511,28 +575,20 @@
       "checked_at": "2026-11-21T16:55:11Z"
     },
     {
-      "proxy_id": "b44a84afef91c097334b",
+      "proxy_id": "bbe6374ec89023789dc0",
       "type": "MTProto",
       "status": "failed",
       "latency_ms": null,
       "failure_code": "timeout",
-      "checked_at": "2026-11-20T20:55:44Z"
+      "checked_at": "2026-11-21T22:01:20Z"
     },
     {
-      "proxy_id": "bbe6374ec89023789dc0",
+      "proxy_id": "bbf3b437b1d6e17c1960",
       "type": "MTProto",
-      "status": "working",
-      "latency_ms": 157,
-      "failure_code": "none",
-      "checked_at": "2026-11-21T01:58:29Z"
-    },
-    {
-      "proxy_id": "bd91930247e21dbcaf5d",
-      "type": "MTProto",
-      "status": "working",
-      "latency_ms": 104,
-      "failure_code": "none",
-      "checked_at": "2026-11-21T01:58:33Z"
+      "status": "failed",
+      "latency_ms": null,
+      "failure_code": "timeout",
+      "checked_at": "2026-11-21T22:01:38Z"
     },
     {
       "proxy_id": "c34b734dc972dd2948e7",
@@ -583,12 +639,36 @@
       "checked_at": "2026-11-21T09:18:20Z"
     },
     {
-      "proxy_id": "ced8d4674d47ee233ad9",
+      "proxy_id": "cde82b19b728ecd52b2a",
       "type": "MTProto",
       "status": "failed",
       "latency_ms": null,
       "failure_code": "timeout",
-      "checked_at": "2026-11-21T09:18:20Z"
+      "checked_at": "2026-11-21T22:01:20Z"
+    },
+    {
+      "proxy_id": "cebcf6e5d30fdd206290",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 105,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:24Z"
+    },
+    {
+      "proxy_id": "ced8d4674d47ee233ad9",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 133,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:24Z"
+    },
+    {
+      "proxy_id": "d1eba8b0c024746dac30",
+      "type": "MTProto",
+      "status": "working",
+      "latency_ms": 155,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:20Z"
     },
     {
       "proxy_id": "d42d9430ce2573b4d04e",
@@ -599,12 +679,12 @@
       "checked_at": "2026-11-21T09:18:19Z"
     },
     {
-      "proxy_id": "d55f25b978095f2560b2",
+      "proxy_id": "d90733bc2a11afa1b7cc",
       "type": "MTProto",
-      "status": "failed",
-      "latency_ms": null,
-      "failure_code": "timeout",
-      "checked_at": "2026-11-20T20:55:41Z"
+      "status": "working",
+      "latency_ms": 167,
+      "failure_code": "none",
+      "checked_at": "2026-11-21T22:01:21Z"
     },
     {
       "proxy_id": "da3135f740a23c4dadd3",
@@ -617,10 +697,10 @@
     {
       "proxy_id": "da3dda8b80de14f603dd",
       "type": "MTProto",
-      "status": "working",
-      "latency_ms": 144,
-      "failure_code": "none",
-      "checked_at": "2026-11-21T01:58:33Z"
+      "status": "failed",
+      "latency_ms": null,
+      "failure_code": "timeout",
+      "checked_at": "2026-11-21T22:01:20Z"
     },
     {
       "proxy_id": "dafe9105c9d6bd57f847",
@@ -663,36 +743,20 @@
       "checked_at": "2026-11-21T09:18:13Z"
     },
     {
-      "proxy_id": "e46f1f74b427914543c6",
-      "type": "MTProto",
-      "status": "working",
-      "latency_ms": 113,
-      "failure_code": "none",
-      "checked_at": "2026-11-21T16:55:11Z"
-    },
-    {
       "proxy_id": "e5679c168cf7496ea969",
       "type": "MTProto",
       "status": "working",
-      "latency_ms": 102,
+      "latency_ms": 129,
       "failure_code": "none",
-      "checked_at": "2026-11-21T01:58:29Z"
-    },
-    {
-      "proxy_id": "e970822b515579ae74b7",
-      "type": "MTProto",
-      "status": "failed",
-      "latency_ms": null,
-      "failure_code": "timeout",
-      "checked_at": "2026-11-20T20:55:45Z"
+      "checked_at": "2026-11-21T22:01:17Z"
     },
     {
       "proxy_id": "ea5cd0532ab7d1c45eb5",
       "type": "MTProto",
       "status": "working",
-      "latency_ms": 3715,
+      "latency_ms": 3650,
       "failure_code": "none",
-      "checked_at": "2026-11-21T16:55:13Z"
+      "checked_at": "2026-11-21T22:01:20Z"
     },
     {
       "proxy_id": "ecdb792c40956b48848a",
@@ -701,6 +765,14 @@
       "latency_ms": null,
       "failure_code": "timeout",
       "checked_at": "2026-11-21T16:55:17Z"
+    },
+    {
+      "proxy_id": "ed287a591c9714ff9af2",
+      "type": "MTProto",
+      "status": "failed",
+      "latency_ms": null,
+      "failure_code": "timeout",
+      "checked_at": "2026-11-21T22:01:24Z"
     },
     {
       "proxy_id": "ed9443f1e556cbf69ea5",
