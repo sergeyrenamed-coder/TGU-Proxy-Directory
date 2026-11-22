@@ -1,37 +1,35 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-22T17:26:58Z",
+  "generated_at": "2026-11-22T22:41:37Z",
   "overall_status": "ok",
   "totals": {
-    "total": 731,
-    "mtproto": 709,
-    "socks5": 22,
+    "total": 872,
+    "mtproto": 847,
+    "socks5": 25,
     "stale": 0,
-    "unsupported": 2287,
-    "tested": 942,
-    "working": 731,
-    "rejected": 211
+    "unsupported": 2343,
+    "tested": 1071,
+    "working": 872,
+    "rejected": 199
   },
   "probe": {
-    "tested": 942,
-    "working": 731,
-    "rejected": 211,
-    "mtproto_working": 709,
-    "socks5_working": 22,
+    "tested": 1071,
+    "working": 872,
+    "rejected": 199,
+    "mtproto_working": 847,
+    "socks5_working": 25,
     "failure_reasons": {
-      "TCP connect:OSError:No reachable public address for proxy host (TimeoutError: timed out).": 57,
-      "MTProto response:OSError:Remote endpoint closed the connection.": 42,
-      "MTProto response:ConnectionResetError:[Errno 104] Connection reset by peer": 40,
-      "MTProto response:OSError:Invalid intermediate response frame length.": 32,
+      "TCP connect:OSError:No reachable public address for proxy host (TimeoutError: timed out).": 59,
+      "MTProto response:ConnectionResetError:[Errno 104] Connection reset by peer": 39,
+      "MTProto response:OSError:Remote endpoint closed the connection.": 36,
+      "MTProto response:OSError:Invalid intermediate response frame length.": 34,
       "MTProto response:TimeoutError:timed out": 14,
-      "SOCKS5 CONNECT to Telegram DC:TimeoutError:timed out": 10,
-      "TCP connect:OSError:No reachable public address for proxy host (ConnectionRefusedError: [Errno 111] Connection refused).": 6,
-      "SOCKS5 negotiation:ConnectionResetError:[Errno 104] Connection reset by peer": 5,
-      "SOCKS5 CONNECT to Telegram DC:OSError:SOCKS5 CONNECT to Telegram DC failed.": 2,
-      "SOCKS5 negotiation:TimeoutError:timed out": 2,
-      "SOCKS5 negotiation:OSError:Remote endpoint closed the connection.": 1
+      "SOCKS5 CONNECT to Telegram DC:TimeoutError:timed out": 9,
+      "SOCKS5 CONNECT to Telegram DC:OSError:SOCKS5 CONNECT to Telegram DC failed.": 3,
+      "SOCKS5 negotiation:ConnectionResetError:[Errno 104] Connection reset by peer": 3,
+      "SOCKS5 negotiation:TimeoutError:timed out": 2
     },
-    "elapsed_ms": 94121
+    "elapsed_ms": 83382
   },
   "sources": [
     {
@@ -40,18 +38,18 @@
       "kind": "MTProto",
       "url": "https://raw.githubusercontent.com/0xRadikal/Free-Telegram-Proxy/main/stable/proxies.json",
       "status": "ok",
-      "fetched": 457,
-      "usable": 315,
-      "unsupported": 140,
-      "elapsed_ms": 339,
+      "fetched": 469,
+      "usable": 322,
+      "unsupported": 146,
+      "elapsed_ms": 182,
       "error": null,
-      "tested": 317,
-      "working": 315,
-      "failed_probes": 2,
+      "tested": 323,
+      "working": 322,
+      "failed_probes": 1,
       "failed_reasons": {
-        "MTProto response:TimeoutError:timed out": 2
+        "MTProto response:TimeoutError:timed out": 1
       },
-      "checked_at": "2026-11-22T17:26:58Z"
+      "checked_at": "2026-11-22T22:41:37Z"
     },
     {
       "id": "radikal-verified",
@@ -59,19 +57,19 @@
       "kind": "MTProto",
       "url": "https://raw.githubusercontent.com/0xRadikal/Free-Telegram-Proxy/main/verified/proxies.json",
       "status": "ok",
-      "fetched": 2079,
-      "usable": 705,
-      "unsupported": 1369,
-      "elapsed_ms": 231,
+      "fetched": 2284,
+      "usable": 847,
+      "unsupported": 1434,
+      "elapsed_ms": 99,
       "error": null,
-      "tested": 710,
-      "working": 705,
-      "failed_probes": 5,
+      "tested": 850,
+      "working": 847,
+      "failed_probes": 3,
       "failed_reasons": {
-        "MTProto response:TimeoutError:timed out": 4,
-        "MTProto response:OSError:Remote endpoint closed the connection.": 1
+        "MTProto response:TimeoutError:timed out": 2,
+        "TCP connect:OSError:No reachable public address for proxy host (TimeoutError: timed out).": 1
       },
-      "checked_at": "2026-11-22T17:26:58Z"
+      "checked_at": "2026-11-22T22:41:37Z"
     },
     {
       "id": "tgmtproxy",
@@ -80,21 +78,21 @@
       "url": "https://raw.githubusercontent.com/tgmtproxy/mtproxy/main/proxies.json",
       "status": "ok",
       "fetched": 900,
-      "usable": 15,
-      "unsupported": 756,
-      "elapsed_ms": 228,
+      "usable": 12,
+      "unsupported": 761,
+      "elapsed_ms": 58,
       "error": null,
-      "tested": 144,
-      "working": 15,
-      "failed_probes": 129,
+      "tested": 139,
+      "working": 12,
+      "failed_probes": 127,
       "failed_reasons": {
-        "MTProto response:ConnectionResetError:[Errno 104] Connection reset by peer": 40,
-        "MTProto response:TimeoutError:timed out": 10,
-        "MTProto response:OSError:Invalid intermediate response frame length.": 32,
-        "MTProto response:OSError:Remote endpoint closed the connection.": 41,
+        "MTProto response:ConnectionResetError:[Errno 104] Connection reset by peer": 39,
+        "MTProto response:TimeoutError:timed out": 12,
+        "MTProto response:OSError:Remote endpoint closed the connection.": 36,
+        "MTProto response:OSError:Invalid intermediate response frame length.": 34,
         "TCP connect:OSError:No reachable public address for proxy host (TimeoutError: timed out).": 6
       },
-      "checked_at": "2026-11-22T17:26:58Z"
+      "checked_at": "2026-11-22T22:41:37Z"
     },
     {
       "id": "freedom-checker",
@@ -102,15 +100,15 @@
       "kind": "MTProto / SOCKS5",
       "url": "https://freedomchecker.ateo.digital/api/snapshot.json",
       "status": "ok",
-      "fetched": 28,
-      "usable": 6,
-      "unsupported": 22,
-      "elapsed_ms": 1046,
+      "fetched": 2,
+      "usable": 0,
+      "unsupported": 2,
+      "elapsed_ms": 611,
       "error": null,
-      "tested": 6,
-      "working": 6,
+      "tested": 0,
+      "working": 0,
       "failed_probes": 0,
-      "checked_at": "2026-11-22T17:26:58Z"
+      "checked_at": "2026-11-22T22:41:37Z"
     },
     {
       "id": "monosans-socks5",
@@ -118,25 +116,23 @@
       "kind": "SOCKS5",
       "url": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt",
       "status": "ok",
-      "fetched": 98,
-      "usable": 21,
+      "fetched": 94,
+      "usable": 25,
       "unsupported": 0,
-      "elapsed_ms": 46,
+      "elapsed_ms": 11,
       "error": null,
       "limited": 0,
-      "tested": 98,
-      "working": 21,
-      "failed_probes": 77,
+      "tested": 94,
+      "working": 25,
+      "failed_probes": 69,
       "failed_reasons": {
-        "SOCKS5 CONNECT to Telegram DC:TimeoutError:timed out": 10,
-        "TCP connect:OSError:No reachable public address for proxy host (ConnectionRefusedError: [Errno 111] Connection refused).": 6,
-        "TCP connect:OSError:No reachable public address for proxy host (TimeoutError: timed out).": 51,
-        "SOCKS5 negotiation:ConnectionResetError:[Errno 104] Connection reset by peer": 5,
-        "SOCKS5 negotiation:OSError:Remote endpoint closed the connection.": 1,
+        "TCP connect:OSError:No reachable public address for proxy host (TimeoutError: timed out).": 52,
+        "SOCKS5 CONNECT to Telegram DC:TimeoutError:timed out": 9,
         "SOCKS5 negotiation:TimeoutError:timed out": 2,
-        "SOCKS5 CONNECT to Telegram DC:OSError:SOCKS5 CONNECT to Telegram DC failed.": 2
+        "SOCKS5 CONNECT to Telegram DC:OSError:SOCKS5 CONNECT to Telegram DC failed.": 3,
+        "SOCKS5 negotiation:ConnectionResetError:[Errno 104] Connection reset by peer": 3
       },
-      "checked_at": "2026-11-22T17:26:58Z"
+      "checked_at": "2026-11-22T22:41:37Z"
     }
   ]
 }
